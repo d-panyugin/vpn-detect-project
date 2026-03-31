@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -10,7 +9,6 @@ from datetime import datetime
 # --- CONFIG ---
 st.set_page_config(page_title="Model Analytics", layout="wide", page_icon="📊")
 
-# Стиль (аналогичный app.py)
 COLOR_1 = "#F7B267" 
 COLOR_2 = "#F79D65"
 COLOR_3 = "#F4845F"
@@ -33,84 +31,85 @@ st.markdown(f"""
 
 RESULTS_DIR = "results"
 
-st.markdown("<h1>📊 АНАЛИТИКА МОДЕЛЕЙ (Папка results)</h1>", unsafe_allow_html=True)
+st.markdown("<h1>📊 АНАЛИТИКА МОДЕЛЕЙ</h1>", unsafe_allow_html=True)
 
-# --- ЗАГРУЗКА ДАННЫХ ИЗ ПАПКИ ---
 @st.cache_data
 def load_results_from_folder(folder):
     if not os.path.exists(folder):
         return pd.DataFrame()
     
-    files = sorted(glob.glob(f"{folder}/*.json"))
+    files = sorted(glob.glob(f"{folder}/*.json"), reverse=True) # Новые сверху
     data = []
-    
     for file_path in files:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                data.append(json.load(f))
+                content = json.load(f)
+                # Flatten metrics for the main table
+                flat = {
+                    'file': os.path.basename(file_path),
+                    'timestamp': content.get('timestamp'),
+                    'model_name': content.get('model_name'),
+                    'run_name': content.get('run_name'),
+                    'accuracy': content.get('metrics', {}).get('accuracy'),
+                    'precision': content.get('metrics', {}).get('precision'),
+                    'recall': content.get('metrics', {}).get('recall'),
+                    'f1_score': content.get('metrics', {}).get('f1_score'),
+                    'raw_data': content # Храним полные данные для детализации
+                }
+                data.append(flat)
         except Exception as e:
-            st.warning(f"Не удалось прочитать {file_path}: {e}")
-            
+            pass
     return pd.DataFrame(data)
 
 df = load_results_from_folder(RESULTS_DIR)
 
 if df.empty:
-    st.info("Папка `results` пуста или не существует. Сохраните результаты в app.py.")
+    st.info("Папка `results` пуста.")
 else:
-    # Преобразуем timestamp для корректной сортировки
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df = df.sort_values(by='timestamp', ascending=False)
-    
-    # --- 1. ТАБЛИЦА ---
+    # --- 1. ГЛАВНАЯ ТАБЛИЦА ---
     st.subheader("📋 История запусков")
-    display_df = df[['timestamp', 'model_name', 'run_name', 'accuracy', 'precision', 'recall', 'f1_score']].copy()
-    display_df['timestamp'] = display_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M')
-    st.dataframe(display_df, use_container_width=True)
+    display_cols = ['timestamp', 'model_name', 'run_name', 'accuracy', 'precision', 'recall', 'f1_score']
+    st.dataframe(df[display_cols], use_container_width=True)
     
     st.divider()
-
-    # --- 2. СРАВНЕНИЕ МЕТРИК ---
-    st.subheader("📈 Сравнение метрик")
-    metrics = ['accuracy', 'precision', 'recall', 'f1_score']
-    df_melted = df.melt(id_vars=['run_name', 'model_name'], value_vars=metrics, 
-                        var_name='Metric', value_name='Score')
-
-    fig = px.bar(df_melted, x='run_name', y='Score', color='Metric', 
-                 barmode='group',
-                 color_discrete_map={
-                     'accuracy': COLOR_1,
-                     'precision': COLOR_2,
-                     'recall': COLOR_3,
-                     'f1_score': COLOR_5
-                 },
-                 hover_data=['model_name'])
     
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', 
-        font_color=COLOR_TEXT,
-        xaxis_title="Эксперимент",
-        yaxis_title="Значение",
-        legend_title="Метрика"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    # --- 2. ВЫБОР ЗАПУСКА ДЛЯ ДЕТАЛЬНОГО ПРОСМОТРА ---
+    st.subheader("🔍 Детальный анализ запуска")
+    
+    # Создаем читаемую опцию для selectbox
+    df['select_option'] = df['timestamp'] + " | " + df['run_name']
+    selected_option = st.selectbox("Выберите эксперимент:", df['select_option'].tolist())
+    
+    # Находим соответствующие данные
+    selected_row = df[df['select_option'] == selected_option].iloc[0]
+    raw_data = selected_row['raw_data']
+    
+    col_a, col_b = st.columns(2)
+    
+    with col_a:
+        st.metric("F1 Score", f"{selected_row['f1_score']:.4f}")
+        st.metric("Accuracy", f"{selected_row['accuracy']:.4f}")
+        
+    with col_b:
+        st.metric("Precision", f"{selected_row['precision']:.4f}")
+        st.metric("Recall", f"{selected_row['recall']:.4f}")
 
-    # --- 3. ТОП F1 ---
-    st.subheader("🏆 Топ-5 моделей по F1 Score")
-    top_f1 = df.sort_values(by='f1_score', ascending=False).head(5)
+    st.divider()
     
-    fig_f1 = px.bar(top_f1, x='f1_score', y='run_name', orientation='h',
-                    color='f1_score', 
-                    color_continuous_scale=[COLOR_5, COLOR_1],
-                    text='f1_score')
+    # --- 3. ПОЛНЫЙ СПИСОК ФИЧ ---
+    st.subheader(f"📐 Feature Importance: {selected_row['run_name']}")
     
-    fig_f1.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', 
-        font_color=COLOR_TEXT,
-        xaxis_title="F1 Score",
-        yaxis_title="Эксперимент",
-        showlegend=False,
-        coloraxis_showscale=False
-    )
-    fig_f1.update_traces(texttemplate='%{text:.4f}', textposition='outside')
-    st.plotly_chart(fig_f1, use_container_width=True)
+    if 'feature_importance_full' in raw_data and len(raw_data['feature_importance_full']) > 0:
+        fi_df = pd.DataFrame(raw_data['feature_importance_full'])
+        fi_df = fi_df.sort_values(by='importance', ascending=False)
+        
+        st.write(f"Всего признаков: {len(fi_df)}")
+        st.dataframe(fi_df, use_container_width=True)
+        
+        # График топ-20
+        fig = px.bar(fi_df.head(20), x='importance', y='feature', orientation='h',
+                     color='importance', color_continuous_scale=[COLOR_5, COLOR_1])
+        fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font_color=COLOR_TEXT)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Данные о важности признаков не сохранены в этом файле.")

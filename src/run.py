@@ -1,98 +1,112 @@
 import argparse
 import os
 import sys
-import subprocess
+import pandas as pd
+import numpy as np
+import joblib
 from pathlib import Path
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 import warnings
-# УБИРАЕМ ВСЕ ПРЕДУПРЕЖДЕНИЯ
 warnings.filterwarnings("ignore")
 
-# --- НАСТРОЙКА ПУТЕЙ ---
-# Получаем абсолютную папку, где лежит этот run.py (src/)
-SRC_DIR = Path(__file__).parent.resolve()
-# Получаем корень проекта (на уровень выше src/)
-PROJECT_ROOT = SRC_DIR.parent.resolve()
+# --- MODEL REGISTRY ---
+MODEL_REGISTRY = {
+    "rf": RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42),
+    "rf_deep": RandomForestClassifier(n_estimators=5000, max_depth=10, random_state=42),
+    "gb": GradientBoostingClassifier(n_estimators=100, random_state=42),
+    "lr": LogisticRegression(max_iter=1000, random_state=42),
+    "dt": DecisionTreeClassifier(random_state=42)
+}
 
-APP_SCRIPT = (SRC_DIR / "app.py").resolve()
-PATH_MODELS = PROJECT_ROOT / "models"
-DEFAULT_DATA = PROJECT_ROOT / "data" / "processed" / "consolidated_traffic_data.csv"
+sys.path.insert(0, str(Path(__file__).parent.resolve()))
+
+def get_feature_importance(classifier):
+    if hasattr(classifier, 'feature_importances_'):
+        return classifier.feature_importances_
+    elif hasattr(classifier, 'coef_'):
+        return np.abs(classifier.coef_[0])
+    else:
+        return np.array([])
 
 def main():
-    parser = argparse.ArgumentParser(description="VPN Detection CLI")
-
-    parser.add_argument('--train', '-t', action='store_true', help="Запустить обучение")
-    parser.add_argument('--algo', '-a', type=str, choices=['rf', 'gb', 'lr', 'dt', 'rf_deep'], 
-                        default='rf', help="Алгоритм для обучения")
-    # Принимаем строку и сразу превращаем в Path объект для надежности
-    parser.add_argument('--data', '-d', type=lambda p: Path(p).resolve(), default=DEFAULT_DATA, help="Путь к данным")
-    parser.add_argument('--output', '-o', type=str, default=None, help="Путь для сохранения модели")
+    parser = argparse.ArgumentParser(description="Train VPN Detection Model")
+    parser.add_argument('-t', '--train', action='store_true', help='Запустить обучение модели')
+    parser.add_argument('-m', '--model', type=str, default='rf', 
+                        choices=list(MODEL_REGISTRY.keys()),
+                        help=f'Модель: {list(MODEL_REGISTRY.keys())}')
+    parser.add_argument('-s', '--save', type=str, help='Куда сохранить модель (models/name.pkl)')
+    # НОВЫЙ АРГУМЕНТ ДЛЯ ПУТИ К ДАННЫМ
+    parser.add_argument('-d', '--data', type=str, help='Путь к файлу данных (CSV). Приоритет над DATA_PATH')
     
-    parser.add_argument('--visualize', '-v', action='store_true', help="Запустить Streamlit UI")
-    parser.add_argument('--model', '-m', type=str, default=None, help="Путь к модели для загрузки в UI")
-
     args = parser.parse_args()
 
-    # --- ВЕТКА 1: ОБУЧЕНИЕ ---
-    if args.train:
-        if not args.output:
-            PATH_MODELS.mkdir(parents=True, exist_ok=True)
-            args.output = str(PATH_MODELS / f"{args.algo}_vpn_model.pkl")
-        else:
-            # Если указан путь, тоже делаем абсолютным относительно корня, если он относительный
-            args.output = str(Path(args.output).resolve())
-            
-        print(f"🚀 Запуск обучения: {args.algo.upper()}")
-        print(f"📂 Данные: {args.data}")
-        print(f"💾 Модель: {args.output}")
+    if not args.train:
+        print("❌ Флаг -t не указан.")
+        return
+
+    if not args.save:
+        print("❌ Не указан путь для сохранения (-s).")
+        return
+
+    # Логика поиска пути к данным: сначала берем из аргумента (-d), потом из переменной среды
+    data_path = args.data or os.environ.get("DATA_PATH")
+
+    if not data_path:
+        print("❌ Путь к данным не указан. Используйте флаг -d 'путь/к/файлу.csv'")
+        return
+    
+    if not os.path.exists(data_path):
+        print(f"❌ Файл не найден: {data_path}")
+        return
+
+    model_key = args.model
+    print(f"🚀 Обучение: {model_key.upper()}...")
+    print(f"📂 Данные: {data_path}")
+    
+    # 1. Загрузка
+    df = pd.read_csv(data_path).replace(-1, 0)
+    df['label'] = df['traffic_type'].str.contains('VPN', na=False)
+
+    # 2. Подготовка
+    X = df.select_dtypes(include=[np.number]).drop(columns=['label'], errors='ignore')
+    y = df['label']
+    features = X.columns.tolist()
+
+    # 3. Разделение
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    # 4. Модель и Pipeline
+    classifier = MODEL_REGISTRY[model_key]
+    pipeline = Pipeline([
+        ('scaler', StandardScaler()),
+        ('classifier', classifier)
+    ])
+    
+    print(f"⚙️ Фиттинг {classifier.__class__.__name__}...")
+    pipeline.fit(X_train, y_train)
+
+    # 5. Импортансы
+    importances = get_feature_importance(pipeline.named_steps['classifier'])
+
+    # 6. Сохранение
+    model_data = {
+        'model': pipeline,
+        'features': features,
+        'algo_name': model_key.upper(),
+        'importances': importances
+    }
+
+    save_dir = os.path.dirname(args.save)
+    if save_dir:
+        os.makedirs(save_dir, exist_ok=True)
         
-        try:
-            # Добавляем src в sys.path, чтобы импорт core сработал
-            sys.path.insert(0, str(SRC_DIR))
-            from core import train_pipeline
-            
-            metrics = train_pipeline(args.algo, str(args.data), args.output)
-            
-            print("\n📊 Результаты:")
-            print(f"   Accuracy: {metrics['accuracy']:.2%}")
-            print(f"   F1 Score: {metrics['f1']:.2%}")
-            print(f"\n💡 Запуск UI:")
-            print(f"   python src/run.py --visualize --model {args.output}")
-            
-        except Exception as e:
-            print(f"❌ Ошибка: {e}")
-            import traceback
-            traceback.print_exc()
-            sys.exit(1)
-
-    # --- ВЕТКА 2: ВИЗУАЛИЗАЦИЯ ---
-    elif args.visualize:
-        if not APP_SCRIPT.exists():
-            print(f"❌ UI скрипт не найден: {APP_SCRIPT}")
-            sys.exit(1)
-
-        env = os.environ.copy()
-        
-        if args.model:
-            model_path = Path(args.model).resolve()
-            if not model_path.exists():
-                print(f"❌ Модель не найдена: {model_path}")
-                sys.exit(1)
-            env["VPN_MODEL_PATH"] = str(model_path)
-            print(f"👀 Модель: {model_path}")
-        else:
-            print("⚠️ Модель не указана.")
-
-        env["DATA_PATH"] = str(args.data)
-        print(f"📂 Данные: {args.data}")
-        print(f"🚀 Запуск Streamlit: {APP_SCRIPT}")
-
-        try:
-            subprocess.run([sys.executable, "-m", "streamlit", "run", str(APP_SCRIPT)], env=env)
-        except KeyboardInterrupt:
-            print("\n🛑 Остановлено.")
-
-    else:
-        parser.print_help()
+    joblib.dump(model_data, args.save)
+    print(f"✅ Готово! Модель в: {args.save}")
 
 if __name__ == "__main__":
     main()
