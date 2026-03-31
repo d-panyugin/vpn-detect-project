@@ -1,0 +1,105 @@
+{
+    "timestamp": "2026-03-31 21:45:04",
+    "model_name": "DT",
+    "run_name": "Decision_tree_classifier",
+    "metrics": {
+        "accuracy": 0.9242407324698526,
+        "precision": 0.9128415595636677,
+        "recall": 0.9389024661186403,
+        "f1_score": 0.9256886260336236
+    },
+    "feature_importance_full": [
+        {
+            "feature": "duration",
+            "importance": 0.028250466069349976
+        },
+        {
+            "feature": "total_fiat",
+            "importance": 0.02247863940754923
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.02201365284307618
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.15252171374863058
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.09363606249228573
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.026454377686221088
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.022532566162555726
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.03305042020617529
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.06659594477339133
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.05323793964302641
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.12499465865445553
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.1609958405011882
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.07086805434858212
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.02762871014644468
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.025794421391835503
+        },
+        {
+            "feature": "min_active",
+            "importance": 0.0152876943586687
+        },
+        {
+            "feature": "mean_active",
+            "importance": 0.00745218911492872
+        },
+        {
+            "feature": "max_active",
+            "importance": 0.006625740676528635
+        },
+        {
+            "feature": "std_active",
+            "importance": 0.003968039111797835
+        },
+        {
+            "feature": "min_idle",
+            "importance": 0.010794001860180393
+        },
+        {
+            "feature": "mean_idle",
+            "importance": 0.004251062558947724
+        },
+        {
+            "feature": "max_idle",
+            "importance": 0.0074923274707884785
+        },
+        {
+            "feature": "std_idle",
+            "importance": 0.013075476773391912
+        }
+    ]
+}

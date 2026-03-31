@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import sys
+import argparse
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -12,7 +13,9 @@ from datetime import datetime
 # УБИРАЕМ ВСЕ ПРЕДУПРЕЖДЕНИЯ
 warnings.filterwarnings("ignore")
 
+# Добавляем папку текущего файла (src) в path
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
+
 from core import load_model_pipeline
 
 # --- STYLE & CONFIG ---
@@ -43,6 +46,23 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
+# --- ПАРСИНГ АРГУМЕНТОВ КОМАНДНОЙ СТРОКИ ---
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, required=True, help='Путь к файлу модели (.pkl)')
+    parser.add_argument('--data', type=str, required=True, help='Путь к файлу данных (.csv)')
+    # Streamlit передает аргументы после '--' через sys.argv
+    return parser.parse_args(sys.argv[1:])
+
+try:
+    args = parse_args()
+    model_path = args.model
+    data_path = args.data
+except SystemExit:
+    st.error("❌ Ошибка запуска. Не указаны обязательные аргументы.")
+    st.info("Используйте формат: `streamlit run src/app.py -- --model models/model.pkl --data data/data.csv`")
+    st.stop()
+
 # --- CACHING ---
 @st.cache_resource
 def get_model(_path):
@@ -53,29 +73,26 @@ def get_data(_path):
     return pd.read_csv(_path).replace(-1, 0)
 
 # --- LOGIC ---
-model_path = os.environ.get("VPN_MODEL_PATH")
-algo_name_display = "UNKNOWN"
 
-if model_path and os.path.exists(model_path):
+algo_name_display = "UNKNOWN"
+# Проверяем существование файла модели для красивого отображения ошибки или названия
+if os.path.exists(model_path):
     try:
         m_data = get_model(model_path)
         algo_name_display = m_data.get('algo_name', 'Unknown').upper()
     except:
-        algo_name_display = "ERROR"
-
-if model_path:
-    st.markdown(f"<h1>VPN TRAFFIC DETECTOR <br><span class='model-subtitle'>// {algo_name_display}</span></h1>", unsafe_allow_html=True)
+        algo_name_display = "LOADING ERROR"
 else:
-    st.markdown("<h1>VPN TRAFFIC DETECTOR</h1>", unsafe_allow_html=True)
-    st.info("Для работы укажите модель: `streamlit run app.py -- --model path/to/model.pkl`")
+    st.error(f"❌ Модель не найдена по пути: `{model_path}`")
+    st.stop()
+
+st.markdown(f"<h1>VPN TRAFFIC DETECTOR <br><span class='model-subtitle'>// {algo_name_display}</span></h1>", unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["📊 Результаты (Metrics)", "💾 Сохранить & Визуализация"])
-data_path = os.environ.get("DATA_PATH")
 
-if not model_path or not data_path:
-    st.warning("Установите переменные окружения VPN_MODEL_PATH и DATA_PATH")
-elif not os.path.exists(data_path):
-    st.error(f"Файл данных не найден: {data_path}")
+# Проверяем данные
+if not os.path.exists(data_path):
+    st.error(f"❌ Файл данных не найден по пути: `{data_path}`")
 else:
     try:
         df = get_data(data_path)
@@ -126,7 +143,6 @@ else:
                             results_dir = "results"
                             os.makedirs(results_dir, exist_ok=True)
                             
-                            # Формируем список фичей для сохранения (ПОЛНЫЙ)
                             fi_list = []
                             if len(importances) > 0:
                                 for f, imp in zip(features, importances):
@@ -142,7 +158,7 @@ else:
                                     "recall": rec,
                                     "f1_score": f1
                                 },
-                                "feature_importance_full": fi_list # <-- СОХРАНЯЕМ ВСЁ
+                                "feature_importance_full": fi_list
                             }
                             
                             safe_name = "".join([c for c in run_name if c.isalnum() or c in (' ', '-', '_')]).strip()
