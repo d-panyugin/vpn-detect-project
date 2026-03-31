@@ -9,7 +9,9 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-
+import warnings
+# УБИРАЕМ ВСЕ ПРЕДУПРЕЖДЕНИЯ
+warnings.filterwarnings("ignore")
 # --- РЕЕСТР МОДЕЛЕЙ ---
 # Здесь мы регистрируем модели. Ключ - это имя для CLI, значение - инстанс класса.
 MODEL_REGISTRY = {

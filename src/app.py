@@ -5,7 +5,9 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 from pathlib import Path
-
+import warnings
+# УБИРАЕМ ВСЕ ПРЕДУПРЕЖДЕНИЯ
+warnings.filterwarnings("ignore")
 # --- CRITICAL FIX: Добавляем папку текущего файла (src) в path ---
 # Это позволяет импортировать core.py независимо от того, откуда запущен скрипт
 sys.path.insert(0, str(Path(__file__).parent.resolve()))

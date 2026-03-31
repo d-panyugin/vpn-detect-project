@@ -3,6 +3,9 @@ import os
 import sys
 import subprocess
 from pathlib import Path
+import warnings
+# УБИРАЕМ ВСЕ ПРЕДУПРЕЖДЕНИЯ
+warnings.filterwarnings("ignore")
 
 # --- НАСТРОЙКА ПУТЕЙ ---
 # Получаем абсолютную папку, где лежит этот run.py (src/)
@@ -21,8 +24,8 @@ def main():
     parser.add_argument('--algo', '-a', type=str, choices=['rf', 'gb', 'lr', 'dt', 'rf_deep'], 
                         default='rf', help="Алгоритм для обучения")
     # Принимаем строку и сразу превращаем в Path объект для надежности
-    parser.add_argument('--data', type=lambda p: Path(p).resolve(), default=DEFAULT_DATA, help="Путь к данным")
-    parser.add_argument('--output', type=str, default=None, help="Путь для сохранения модели")
+    parser.add_argument('--data', '-d', type=lambda p: Path(p).resolve(), default=DEFAULT_DATA, help="Путь к данным")
+    parser.add_argument('--output', '-o', type=str, default=None, help="Путь для сохранения модели")
     
     parser.add_argument('--visualize', '-v', action='store_true', help="Запустить Streamlit UI")
     parser.add_argument('--model', '-m', type=str, default=None, help="Путь к модели для загрузки в UI")
