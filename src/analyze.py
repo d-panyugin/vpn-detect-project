@@ -31,7 +31,7 @@ st.markdown(f"""
 
 RESULTS_DIR = "results"
 
-st.markdown("<h1>📊 АНАЛИТИКА МОДЕЛЕЙ</h1>", unsafe_allow_html=True)
+st.markdown("<h1> АНАЛИТИКА МОДЕЛЕЙ </h1>", unsafe_allow_html=True)
 
 @st.cache_data
 def load_results_from_folder(folder):
@@ -74,7 +74,7 @@ else:
     st.divider()
     
     # --- 2. ВЫБОР ЗАПУСКА ДЛЯ ДЕТАЛЬНОГО ПРОСМОТРА ---
-    st.subheader("🔍 Детальный анализ запуска")
+    st.subheader("🔍 Детали запуска")
     
     # Создаем читаемую опцию для selectbox
     df['select_option'] = df['timestamp'] + " | " + df['run_name']

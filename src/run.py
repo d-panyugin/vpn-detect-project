@@ -11,16 +11,22 @@ from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import VotingClassifier
 import warnings
 warnings.filterwarnings("ignore")
 
 # --- MODEL REGISTRY ---
 MODEL_REGISTRY = {
     "rf": RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42),
-    "rf_deep": RandomForestClassifier(n_estimators=5000, max_depth=10, random_state=42),
     "gb": GradientBoostingClassifier(n_estimators=100, random_state=42),
     "lr": LogisticRegression(max_iter=1000, random_state=42),
-    "dt": DecisionTreeClassifier(random_state=42)
+    "dt": DecisionTreeClassifier(random_state=42),
+    "eh": VotingClassifier(
+        estimators=[('rf', RandomForestClassifier(n_estimators=1000, max_depth=10)),
+                    ('gb', GradientBoostingClassifier(n_estimators=100, random_state=42)),
+                    ('dt', DecisionTreeClassifier(random_state=42))], 
+        voting='hard'
+    )
 }
 
 sys.path.insert(0, str(Path(__file__).parent.resolve()))

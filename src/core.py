@@ -1,6 +1,8 @@
+raise AssertionError
 import pandas as pd
 import numpy as np
 import joblib
+
 import os
 from pathlib import Path
 from sklearn.model_selection import train_test_split
@@ -13,7 +15,6 @@ import warnings
 # УБИРАЕМ ВСЕ ПРЕДУПРЕЖДЕНИЯ
 warnings.filterwarnings("ignore")
 # --- РЕЕСТР МОДЕЛЕЙ ---
-# Здесь мы регистрируем модели. Ключ - это имя для CLI, значение - инстанс класса.
 MODEL_REGISTRY = {
     "rf": RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42),
     "rf_deep": RandomForestClassifier(n_estimators=5000, max_depth=10, random_state=42),
