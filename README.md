@@ -39,4 +39,16 @@ python src/run.py -t -m <model_key> -d <path_to_data> -s <path_to_save_model>
 
 ```bash
 python src/run.py -t -m bag_dt -d data/my_dataset.csv -s models/bagging_model.pkl
+```
 ## 4. Режим 2: Анализ и Инференс (App Mode)
+```bash
+streamlit run src/app.py -- --model <path_to_model> --data <path_to_test_data>
+```
+### Пример
+```bash
+streamlit run src/app.py -- --model models/bagging_model.pkl --data data/test_data.csv
+```
+## 5. Аналитика результатов (запускать из корня)
+```bash
+streamlit run src/analyze.py
+```
