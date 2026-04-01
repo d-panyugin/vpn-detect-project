@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import VotingClassifier
+from sklearn.ensemble import BaggingClassifier
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -26,7 +27,13 @@ MODEL_REGISTRY = {
                     ('gb', GradientBoostingClassifier(n_estimators=100, random_state=42)),
                     ('dt', DecisionTreeClassifier(random_state=42))], 
         voting='hard'
-    )
+    ),
+    "bag_dt" : BaggingClassifier(
+        estimator=DecisionTreeClassifier(), 
+        n_estimators=100, 
+        random_state=42
+    ),
+    
 }
 
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
