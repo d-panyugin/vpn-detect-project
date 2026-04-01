@@ -36,6 +36,10 @@ def main():
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
     df['avg_packet_size'] = df['flowBytesPerSecond'] / df['flowPktsPerSecond']
+    df['total_iat_ratio'] = df['total_fiat'] / (df['total_biat'] + 1e-5)
+    df['mean_iat_ratio'] = df['mean_fiat'] / (df['mean_biat'] + 1e-5)
+    df['total_volume'] = df['flowBytesPerSecond'] * df['duration']
+    df['total_packets'] = df['flowPktsPerSecond'] * df['duration']
     # Сохраняем
     df.to_csv(args.output, index=False)
     print(f"✅ Обработанный файл сохранен: {args.output}")

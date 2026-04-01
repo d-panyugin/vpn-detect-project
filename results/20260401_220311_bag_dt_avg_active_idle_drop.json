@@ -1,0 +1,81 @@
+{
+    "timestamp": "2026-04-01 22:03:11",
+    "model_name": "BAG_DT",
+    "run_name": "bag_dt_avg_active_idle_drop",
+    "train_dataset": "dataset_avg_active_idle_drop.csv",
+    "test_dataset": "dataset_avg_active_idle_drop.csv",
+    "metrics": {
+        "accuracy": 0.9477445288075034,
+        "precision": 0.9342161929371232,
+        "recall": 0.9638969117973784,
+        "f1_score": 0.948824494259158,
+        "roc_auc": 0.98790169088251,
+        "specificity": 0.9314253647586981
+    },
+    "feature_importance_full": [
+        {
+            "feature": "duration",
+            "importance": 0.04119902594164542
+        },
+        {
+            "feature": "total_fiat",
+            "importance": 0.029862911184513775
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.02608801760742802
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.09042418355689702
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.14269975501212812
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.04537086371485067
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.03373129354377828
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.02963864526879464
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.038594694921173234
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.022403079925182947
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.03328412644748162
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.07009908044216856
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.036964812992296966
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.03323499042258669
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.06373196393378878
+        },
+        {
+            "feature": "avg_packet_size",
+            "importance": 0.26267255508528525
+        }
+    ]
+}
