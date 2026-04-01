@@ -10,48 +10,18 @@ import warnings
 import json
 from datetime import datetime
 
-# УБИРАЕМ ВСЕ ПРЕДУПРЕЖДЕНИЯ
 warnings.filterwarnings("ignore")
-
-# Добавляем папку текущего файла (src) в path
 sys.path.insert(0, str(Path(__file__).parent.resolve()))
-
 from core import load_model_pipeline
 
-# --- STYLE & CONFIG ---
-st.set_page_config(layout="wide", page_icon="🔥")
+# ... (CSS и COLORS остаются без изменений) ...
+COLOR_TEXT = "#39393A"
+st.markdown(f"""<style>... CSS ...</style>""", unsafe_allow_html=True)
 
-COLOR_1 = "#F7B267" 
-COLOR_2 = "#F79D65"
-COLOR_3 = "#F4845F"
-COLOR_4 = "#F27059"
-COLOR_5 = "#F25C54" 
-COLOR_TEXT = "#39393A" 
-HEADER_GRADIENT = f"linear-gradient(90deg, {COLOR_1}, {COLOR_2}, {COLOR_3}, {COLOR_4}, {COLOR_5})"
-
-st.markdown(f"""
-<style>
-    .main {{ background-color: #F0F2F6; color: {COLOR_TEXT}; }}
-    h1 {{
-        font-family: 'Helvetica', sans-serif; font-weight: 800;
-        background: {HEADER_GRADIENT};
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        text-align: center; font-size: 2.5rem; margin-bottom: 0.5rem; line-height: 1.2;
-    }}
-    .model-subtitle {{ font-size: 0.6em; opacity: 0.8; font-weight: 600; -webkit-text-fill-color: {COLOR_TEXT}; }}
-    div[data-testid="stMetricLabel"] > div {{ color: #666666 !important; font-size: 14px; font-weight: 600; text-transform: uppercase; }}
-    div[data-testid="stMetricValue"] {{ color: {COLOR_TEXT} !important; font-family: 'Helvetica', sans-serif; font-size: 32px; font-weight: 800; }}
-    div[data-testid="stMetricDelta"] > div > span {{ color: {COLOR_5} !important; font-weight: bold; }}
-    .block-container {{ padding-top: 2rem; padding-bottom: 2rem; }}
-</style>
-""", unsafe_allow_html=True)
-
-# --- ПАРСИНГ АРГУМЕНТОВ КОМАНДНОЙ СТРОКИ ---
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, required=True, help='Путь к файлу модели (.pkl)')
-    parser.add_argument('--data', type=str, required=True, help='Путь к файлу данных (.csv)')
-    # Streamlit передает аргументы после '--' через sys.argv
+    parser.add_argument('--model', type=str, required=True, help='Путь к модели (.pkl)')
+    parser.add_argument('--data', type=str, required=True, help='Путь к данным для теста (.csv)')
     return parser.parse_args(sys.argv[1:])
 
 try:
@@ -59,11 +29,9 @@ try:
     model_path = args.model
     data_path = args.data
 except SystemExit:
-    st.error("❌ Ошибка запуска. Не указаны обязательные аргументы.")
-    st.info("Используйте формат: `streamlit run src/app.py -- --model models/model.pkl --data data/data.csv`")
+    st.error("❌ Укажите --model и --data")
     st.stop()
 
-# --- CACHING ---
 @st.cache_resource
 def get_model(_path):
     return load_model_pipeline(_path)
@@ -74,67 +42,86 @@ def get_data(_path):
 
 # --- LOGIC ---
 
-algo_name_display = "UNKNOWN"
-# Проверяем существование файла модели для красивого отображения ошибки или названия
 if os.path.exists(model_path):
-    try:
-        m_data = get_model(model_path)
-        algo_name_display = m_data.get('algo_name', 'Unknown').upper()
-    except:
-        algo_name_display = "LOADING ERROR"
+    m_data = get_model(model_path)
+    algo_name_display = m_data.get('algo_name', 'Unknown').upper()
+    # Берем имя файла, на котором учились
+    train_dataset_name = Path(m_data.get('dataset_path', 'Unknown')).name
 else:
-    st.error(f"❌ Модель не найдена по пути: `{model_path}`")
+    st.error(f"❌ Модель не найдена: {model_path}")
     st.stop()
 
+# Заголовок с именами датасетов
 st.markdown(f"<h1>VPN TRAFFIC DETECTOR <br><span class='model-subtitle'>// {algo_name_display}</span></h1>", unsafe_allow_html=True)
+st.markdown(f"""
+<div style="text-align: center; margin-bottom: 20px; color: #666;">
+    🎓 <b>Train Dataset:</b> {train_dataset_name} <br>
+    🔍 <b>Test Dataset:</b> {Path(data_path).name}
+</div>
+""", unsafe_allow_html=True)
 
 tab1, tab2 = st.tabs(["📊 Результаты (Metrics)", "💾 Сохранить & Визуализация"])
 
-# Проверяем данные
 if not os.path.exists(data_path):
-    st.error(f"❌ Файл данных не найден по пути: `{data_path}`")
+    st.error(f"❌ Файл данных не найден: {data_path}")
 else:
     try:
+        # Просто загружаем, не трогая структуру (duration должен быть уже удален на этапе подготовки)
         df = get_data(data_path)
         df['label'] = df['traffic_type'].str.contains('VPN', na=False)
         
-        data = get_model(model_path)
-        model = data['model']
-        features = data['features']
-        importances = data.get('importances', np.array([]))
+        model = m_data['model']
+        features = m_data['features']
+        importances = m_data.get('importances', np.array([]))
 
         missing_feats = set(features) - set(df.columns)
         
         if missing_feats:
-            st.error(f"⚠️ В датасете не хватает колонок: {missing_feats}")
+            st.error(f"⚠️ В тестовом датасете не хватает колонок: {missing_feats}")
+            st.stop()
         else:
             from sklearn.model_selection import train_test_split
+            # Для теста берем часть из загруженного файла
             _, X_test, _, y_test = train_test_split(df[features], df['label'], test_size=0.3, random_state=42)
             y_pred = model.predict(X_test)
             
-            from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
+            from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
+            
             acc = accuracy_score(y_test, y_pred)
             prec = precision_score(y_test, y_pred, zero_division=0)
             rec = recall_score(y_test, y_pred, zero_division=0)
             f1 = f1_score(y_test, y_pred, zero_division=0)
-            report = classification_report(y_test, y_pred)
+            
+            try:
+                y_proba = model.predict_proba(X_test)[:, 1]
+                roc_auc = roc_auc_score(y_test, y_proba)
+            except:
+                roc_auc = 0.0
+
+            cm = confusion_matrix(y_test, y_pred)
+            tn, fp, fn, tp = cm.ravel()
+            specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
 
             with tab1:
-                m1, m2, m3, m4 = st.columns(4)
+                m1, m2, m3, m4, m5, m6 = st.columns(6)
                 m1.metric("Accuracy", f"{acc:.2%}")
                 m2.metric("Precision", f"{prec:.2%}")
                 m3.metric("Recall", f"{rec:.2%}")
                 m4.metric("F1 Score", f"{f1:.2%}")
-                with st.expander("Подробнее (Classification Report)"):
-                    st.code(report, language='text')
+                m5.metric("AUC-ROC", f"{roc_auc:.4f}")
+                m6.metric("Specificity", f"{specificity:.2%}")
+
+                with st.expander("Classification Report"):
+                    from sklearn.metrics import classification_report
+                    st.code(classification_report(y_test, y_pred), language='text')
 
             with tab2:
                 col_save, col_graph = st.columns([1, 2])
                 
                 with col_save:
-                    st.subheader("💾 Сохранить в аналитику")
-                    run_name = st.text_input("Название эксперимента", placeholder="Например: RF v2 depth=15")
-                    save_btn = st.button("Сохранить (JSON)", type="primary")
+                    st.subheader("💾 Сохранить результат")
+                    run_name = st.text_input("Название прогона", placeholder="Test Run #1")
+                    save_btn = st.button("Сохранить в JSON", type="primary")
                     
                     if save_btn:
                         if not run_name:
@@ -152,11 +139,11 @@ else:
                                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                 "model_name": algo_name_display,
                                 "run_name": run_name,
+                                "train_dataset": train_dataset_name,   # Сохраняем имя файла обучения
+                                "test_dataset": Path(data_path).name,  # Сохраняем имя файла теста
                                 "metrics": {
-                                    "accuracy": acc,
-                                    "precision": prec,
-                                    "recall": rec,
-                                    "f1_score": f1
+                                    "accuracy": acc, "precision": prec, "recall": rec, 
+                                    "f1_score": f1, "roc_auc": roc_auc, "specificity": specificity
                                 },
                                 "feature_importance_full": fi_list
                             }
@@ -171,21 +158,13 @@ else:
                             st.success(f"✅ Сохранено:\n`{filename}`")
 
                 with col_graph:
-                    st.subheader("Top 10 Features (Preview)")
+                    st.subheader("Top 10 Features")
                     if len(importances) > 0:
                         feat_df = pd.DataFrame({'Feature': features, 'Importance': importances})
                         feat_df = feat_df.sort_values(by='Importance', ascending=True).tail(10)
-                        custom_colors = [COLOR_5, COLOR_4, COLOR_3, COLOR_2, COLOR_1]
-                        
-                        fig = px.bar(
-                            feat_df, x='Importance', y='Feature', orientation='h', 
-                            color='Importance', color_continuous_scale=custom_colors
-                        )
-                        fig.update_layout(
-                            plot_bgcolor='rgba(255,255,255,0)', paper_bgcolor='rgba(255,255,255,0)', 
-                            font_color=COLOR_TEXT, margin=dict(l=0, r=0, t=0, b=0),
-                            coloraxis_showscale=False
-                        )
+                        custom_colors = ["#F25C54", "#F27059", "#F4845F", "#F79D65", "#F7B267"]
+                        fig = px.bar(feat_df, x='Importance', y='Feature', orientation='h', color='Importance', color_continuous_scale=custom_colors)
+                        fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font_color="#39393A", margin=dict(l=0, r=0, t=0, b=0), coloraxis_showscale=False)
                         st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:

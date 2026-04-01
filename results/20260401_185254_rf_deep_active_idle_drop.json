@@ -1,0 +1,77 @@
+{
+    "timestamp": "2026-04-01 18:52:54",
+    "model_name": "RF_DEEP",
+    "run_name": "rf_deep_active_idle_drop",
+    "train_dataset": "dataset_active_idle_drop.csv",
+    "test_dataset": "dataset_active_idle_drop.csv",
+    "metrics": {
+        "accuracy": 0.9280928986154533,
+        "precision": 0.9069423929098966,
+        "recall": 0.9548989113530326,
+        "f1_score": 0.9303030303030303,
+        "roc_auc": 0.9837456061017491,
+        "specificity": 0.901010101010101
+    },
+    "feature_importance_full": [
+        {
+            "feature": "duration",
+            "importance": 0.05340837059151441
+        },
+        {
+            "feature": "total_fiat",
+            "importance": 0.039682116452068955
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.0363804530231068
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.08080410685164392
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.09743502157530122
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.061668087613629574
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.05053493726448996
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.05716669230230724
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.060212801884878465
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.06824060122134339
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.09229221854758948
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.09618411005669408
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.08043064665939265
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.06836858748858876
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.05719124846745122
+        }
+    ]
+}
