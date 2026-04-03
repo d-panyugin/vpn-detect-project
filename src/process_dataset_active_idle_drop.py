@@ -1,4 +1,3 @@
-@ -1,48 +0,0 @@
 import argparse
 import pandas as pd
 import os
@@ -28,6 +27,7 @@ def main():
     min_idle
     std_idle
     max_idle"""
+    num_cols = df.select_dtypes(include=['number']).columns
     df.drop(columns=[s for s in df.columns if 'active' in s or 'idle' in s],inplace=True)
     final_cols = len(df.columns)
     print(f"📊 Количество колонок: {initial_cols} -> {final_cols}")

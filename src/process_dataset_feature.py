@@ -1,6 +1,7 @@
 import argparse
 import pandas as pd
 import os
+import numpy as np
 
 def main():
     parser = argparse.ArgumentParser(description="Предварительная обработка датасета")
@@ -18,30 +19,50 @@ def main():
 
     initial_cols = len(df.columns)
     
-    """наименее важные признаки для лучшей модели(bagging decision tree),
-        std_active
-        mean_idle
-        mean_active
-        max_active
-        min_active
-        min_idle
-        std_idle
-        max_idle"""
-
-    # Создаем папку, если её нет
     output_dir = os.path.dirname(args.output)
     if output_dir and not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    df['avg_packet_size'] = df['flowBytesPerSecond'] / df['flowPktsPerSecond']
-    df['total_volume'] = df['flowBytesPerSecond'] * df['duration']
-    df['total_packets'] = df['flowPktsPerSecond'] * df['duration']
-    df['active_duration_ratio'] = df['active'] / df['duration']
-    df['std_idle_duration_ratio'] = df['std_idle'] / df['duration']
-    df['mean_idle_duration_ratio'] = df['mean_idle'] / df['duration']
-    df['std_active_duration_ratio'] = df['std_active'] / df['duration']
+
+    # 1. Выбираем только числовые колонки
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    
+    # Исключаем целевую переменную (label), чтобы не умножать её на другие признаки
+    # Если у вас другая колонка с меткой, измените 'label' на нужное имя
+    if 'label' in numeric_cols:
+        numeric_cols.remove('label')
+
+    print(f"🔢 Обработка {len(numeric_cols)} числовых колонок...")
+
+    # 2. Собираем новые признаки в список
+    new_features = []
+
+    for i, a in enumerate(numeric_cols):
+        for b in numeric_cols[i+1:]:
+            # Умножение
+            new_features.append(pd.Series(df[a] * df[b], name=f'{a}*{b}'))
+            
+            # Деление A/B
+            new_features.append(pd.Series(df[a] / df[b], name=f'{a}/{b}'))
+            
+            # Деление B/A
+            new_features.append(pd.Series(df[b] / df[a], name=f'{b}/{a}'))
+
+    print(f"🔌 Объединение колонок (concatenation)...")
+    
+    # 3. Объединяем все за один раз
+    if new_features:
+        df = pd.concat([df] + new_features, axis=1)
+
+    # === ВАЖНО: Очистка данных ===
+    print("🧹 Очистка данных (замена inf и nan на 0)...")
+    # Деление на ноль создает inf, заменим их на NaN, а затем на 0
+    df.replace([np.inf, -np.inf], np.nan, inplace=True)
+    df.fillna(0, inplace=True)
+    # =============================
 
     final_cols = len(df.columns)
     print(f"📊 Количество колонок: {initial_cols} -> {final_cols}")
+    
     # Сохраняем
     df.to_csv(args.output, index=False)
     print(f"✅ Обработанный файл сохранен: {args.output}")
