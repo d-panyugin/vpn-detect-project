@@ -1,0 +1,15 @@
+{
+    "timestamp": "2026-04-06 22:50:13",
+    "model_name": "XGB",
+    "run_name": "XGB_feature_engineering",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "test_dataset": "train_split_30%",
+    "metrics": {
+        "accuracy": 0.8874497543546226,
+        "precision": 0.8814984709480123,
+        "recall": 0.8965785381026439,
+        "f1_score": 0.8889745566692367,
+        "roc_auc": 0.0
+    },
+    "feature_importance_full": []
+}
