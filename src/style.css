@@ -1,0 +1,71 @@
+/* src\style.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+:root {
+  --primary-color: #F25C54;
+  --secondary-color: #F7B267;
+  --text-color: #39393A;
+  --bg-color: #F0F2F6;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+}
+
+h1 {
+  font-weight: 800;
+  text-align: center;
+  background: linear-gradient(90deg, #F7B267, #F79D65, #F4845F, #F27059, #F25C54);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+
+/* Карточки метрик */
+div[data-testid="stMetric"] {
+  background-color: white;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border-left: 4px solid var(--secondary-color);
+}
+
+/* Кнопки */
+.stButton>button {
+  background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+  color: white;
+  border-radius: 8px;
+  border: none;
+  padding: 10px 24px;
+  font-weight: 600;
+}
+
+.stButton>button:hover {
+  opacity: 0.9;
+  color: white;
+}
+
+/* Табы */
+.stTabs [data-baseweb="tab-list"] {
+  gap: 8px;
+}
+
+.stTabs [data-baseweb="tab"] {
+  border-radius: 8px 8px 0 0;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+}
+
+.stTabs [aria-selected="true"] {
+  background-color: white;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+/* Субтитль модели */
+.model-subtitle {
+  font-size: 0.6em;
+  color: #666;
+  font-weight: 400;
+}

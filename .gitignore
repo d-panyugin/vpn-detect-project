@@ -2,3 +2,6 @@
 *.pkl
 *.md
 README
+(unused) deprecated
+__pycache__\*
+*.csv
