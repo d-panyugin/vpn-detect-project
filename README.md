@@ -25,19 +25,19 @@
 pip install streamlit pandas numpy scikit-learn plotly joblib xgboost
 ```
 
-## Запуск обучения
+### Запуск обучения
 ```
 python src/run.py -t -m bag_dt -d data/consolidated_traffic_data.csv -s models/bagging_model.pkl
 ```
-## Запуск web-interface с аналитикой конкретной модели
+### Запуск web-interface с аналитикой конкретной модели
 ```
 streamlit run src/app.py -- --model models/bagging_model.pkl --data data/test_data.csv
 ```
-## Запуск web-interface с аналитикой всех результатов
+### Запуск web-interface с аналитикой всех результатов
 ```
 streamlit run src/analyze.py
 ```
-## Доступные модели
+### Доступные модели
 
 Ключ модели передаётся через аргумент -m. Все модели определены в config.py.
 
@@ -49,7 +49,7 @@ streamlit run src/analyze.py
 - bag_dt    : Bagging с Decision Tree (50 estimators) — рекомендуемый
 - xgb       : XGBoost (300 деревьев, learning_rate=0.05, max_depth=8)
 
-## Профили предобработки данных
+### Профили предобработки данных
 
 Профили задаются через аргумент -p. Они описаны в config.py.
 
@@ -58,7 +58,7 @@ streamlit run src/analyze.py
 - clean_max_biat        : Удаляется фиксированный список шумных признаков (см. config.py).
 - feature_engineering   : Генерация всех попарных взаимодействий (A*B, A/B, B/A) для числовых колонок.
 
-## Аргументы командной строки для run.py
+### Аргументы командной строки для run.py
 
 - -t          (обязательный)   Флаг запуска обучения.
 - -m          (обязательный)   Ключ модели из списка выше.
