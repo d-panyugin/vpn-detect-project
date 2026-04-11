@@ -80,11 +80,13 @@ streamlit run src/analyze.py
 > Примеры команд
 
 # Обучение Bagging Decision Tree с профилем feature_engineering
+```
 python src/run.py -t -m bag_dt -p feature_engineering -d data/processed/consolidated_traffic_data.csv -s models/bag_dt.pkl
-
+```
 # Обучение модели с PCA на примере XGBoost
+```
 python src/run.py -t -m xgb --pca -d data/processed/consolidated_traffic_data.csv -s models/xgb_pca.pkl
-
+```
 ## Веб-интерфейс (app.py)
 
 Запуск:
