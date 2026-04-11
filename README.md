@@ -12,7 +12,7 @@
 - │ ├── core.py # Основные функции: пайплайн, препроцессор, обучение
 - │ ├── config.py # Реестр моделей и профилей обработки данных
 - │ └── style.css # Стили для Streamlit
-- ├── data/ # Датасеты (.csv)
+- ├── data/processed # Датасеты (.csv)
 - ├── models/ # Сохранённые модели (.pkl)
 - ├── results/ # JSON‑отчёты экспериментов
 - └── README.md # Документация
@@ -26,13 +26,15 @@ pip install streamlit pandas numpy scikit-learn plotly joblib xgboost
 ```
 
 ### Запуск обучения
-```
-python src/run.py -t -m bag_dt -d data/consolidated_traffic_data.csv -s models/bagging_model.pkl
+```python
+python src/run.py -t -m bag_dt -d data/processed/consolidated_traffic_data.csv -s models/bagging_model.pkl
 ```
 ### Запуск web-interface с аналитикой конкретной модели
+```python
+streamlit run src/app.py -- --model models/bagging_model.pkl --data data/processed/consolidated_traffic_data.csv
 ```
-streamlit run src/app.py -- --model models/bagging_model.pkl --data data/test_data.csv
-```
+## ВНИМАНИЕ: разделение на train/test происходит внутри. Команда просто принимает путь к полному датасету
+## Конфиг src/config.py поддерживает изменения моделей и автоматизированный pipeline
 ### Запуск web-interface с аналитикой всех результатов
 ```
 streamlit run src/analyze.py
@@ -70,10 +72,10 @@ streamlit run src/analyze.py
 > Примеры команд
 
 # Обучение Bagging Decision Tree с профилем feature_engineering
-python src/run.py -t -m bag_dt -p feature_engineering -d data/train.csv -s models/bag_fe.pkl
+python src/run.py -t -m bag_dt -p feature_engineering -d data/processed/consolidated_traffic_data.csv -s models/bag_fe.pkl
 
 # Обучение XGBoost с PCA
-python src/run.py -t -m xgb --pca -d data/train.csv -s models/xgb_pca.pkl
+python src/run.py -t -m xgb --pca -d data/processed/consolidated_traffic_data.csv -s models/xgb_pca.pkl
 
 ## Веб-интерфейс (app.py)
 
@@ -83,26 +85,26 @@ streamlit run src/app.py -- --model <путь_к_модели> --data <путь_
 Возможности:
 - Загрузка модели и тестового датасета.
 - Расчёт метрик: Accuracy, Precision, Recall, F1, AUC-ROC, Specificity.
-- Отображение топ-10 признаков по важности (если доступно).
+- Отображение топ-10 признаков по важности (недоступно при PCA).
 - Сохранение результатов инференса в папку results/ с произвольным названием.
 
 ### Аналитика экспериментов (analyze.py)
 
-Запуск:
+#### Запуск:
 streamlit run src/analyze.py
 
-Возможности:
+#### Возможности:
 - Таблица со сводкой по всем запускам из папки results.
 - Детальный просмотр выбранного эксперимента: метрики и полный список важности признаков.
 - График топ-20 признаков.
 
-Формат входных данных
+### Формат входных данных
 
 Ожидается CSV-файл с колонками признаков и обязательной колонкой traffic_type, содержащей метки классов (например, VPN или NonVPN). Значения -1 автоматически заменяются на 0.
 
 ### Детали реализации
 
-- Препроцессор (DataPreprocessor): удаляет признаки по паттернам или точным именам, генерирует новые признаки по формулам, создаёт попарные взаимодействия (если включено).
+- Препроцессор (DataPreprocessor): удаляет признаки по паттернам или точным именам, генерирует новые признаки по формулам, создаёт попарные взаимодействия (если включена соответствующая опция).
 - Пайплайн sklearn: последовательность Preprocessor → StandardScaler → (PCA) → Classifier.
 - Сохранение модели: вместе с пайплайном сохраняются метаданные: имя алгоритма, список исходных признаков, обработанные признаки и их важности.
 - Важность признаков: вычисляется через feature_importances_ или coef_, для Bagging усредняется по базовым деревьям, для неподдерживаемых моделей используется Permutation Importance.
@@ -110,8 +112,8 @@ streamlit run src/analyze.py
 ### Примечания
 
 - При использовании PCA важность признаков не сохраняется.
-- Профиль feature_engineering генерирует большое количество признаков (около 500+), что может замедлить обучение и увеличить потребление памяти.
+- Профиль feature_engineering генерирует большое количество признаков. Медленное обучение гарантированно.
 - JSON-отчёты создаются автоматически при обучении, а также могут быть сохранены вручную из веб-интерфейса.
 
 #### Лицензия
--- пока нет
+-- пока нет (в разработке)
