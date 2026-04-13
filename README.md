@@ -1,54 +1,131 @@
 # VPN Traffic Detector
-📁 Структура проекта
+
+Проект для обнаружения VPN-трафика методами машинного обучения.
+## Для оценки моделей я разработал автоматическую систему оценки моделей
+> Что система умеет?
+- Автоматический train/test split
+- config.py для автоматизированной настройки pipeline и конфигурации моделей в одном месте.
+- Обучение модели одной командой (см. ниже)
+- Веб-интерфейс на streamlit с аналитикой по модели или всем моделям сразу с dashboard по метрикам одной командой.
+- Модуль автоматического сохранения результатов модели.
+## В планах:
+- Детект аномалий
+## 📁 Структура проекта
 .
 - ├── src/
-- │ ├── run.py # Скрипт для обучения моделей
+- │ ├── run.py # Скрипт обучения моделей (CLI)
 - │ ├── app.py # Веб-интерфейс для инференса и оценки
-- │ ├── analyze.py # Скрипт для визуализации сохраненной истории
-- │ └── core.py # Вспомогательные функции (загрузка моделей)
-- ├── data/ # Папка для датасетов (.csv)
-- ├── models/ # Папка для сохраненных обученных моделей (.pkl)
-- ├── results/ # Папка для сохраненных JSON-отчетов
-- └── README.md # Этот файл
-### Подготовка
-```bash
-pip install streamlit pandas numpy scikit-learn plotly joblib
-```
-## Запуск обучения
-```
-python src/run.py -t -m <model_key> -d <path_to_data> -s <path_to_save_model>
-```
-## Аргументы:
+- │ ├── analyze.py # Визуализация истории экспериментов
+- │ ├── core.py # Основные функции: пайплайн, препроцессор, обучение
+- │ ├── config.py # Реестр моделей и профилей обработки данных
+- │ └── style.css # Стили для Streamlit
+- ├─ data/processed # Датасеты (.csv)
+- │ └── consolidated_traffic_data.csv
+- ├── models/ # Сохранённые модели (.pkl)
+- ├── results/ # JSON‑отчёты экспериментов
+- └── README.md # Документация
 
-* -t : Флаг запуска обучения (обязательный).
-* -m : Ключ модели из реестра (обязательный).
-* -d : Путь к файлу с обучающими данными (обязательный).
-* -s : Путь, куда сохранить модель (.pkl) (обязательный).
-* -r : (Опционально) Дообучить модель на 100% данных после оценки.
-## Доступные модели (-m):
+## 🚀 Быстрый старт
 
-* rf : Random Forest (n_estimators=100)
-* rf_deep : Random Forest (n_estimators=500, depth=15)
-* gb : Gradient Boosting
-* lr : Logistic Regression
-* dt : Decision Tree
-* bag_dt : Bagging Decision Tree (Рекомендуемый)
-### Примеры:
-
-Обычное обучение (оценка на test split):
+### 1. Установка зависимостей
 
 ```bash
-python src/run.py -t -m bag_dt -d data/my_dataset.csv -s models/bagging_model.pkl
+pip install streamlit pandas numpy scikit-learn plotly joblib xgboost
 ```
-## Режим 2: Анализ и Инференс (App Mode)
-```bash
-streamlit run src/app.py -- --model <path_to_model> --data <path_to_test_data>
+
+### Запуск обучения
+```python
+python src/run.py -t -m bag_dt -d data/processed/consolidated_traffic_data.csv -s models/bagging_model.pkl
 ```
-### Пример
-```bash
-streamlit run src/app.py -- --model models/bagging_model.pkl --data data/test_data.csv
+### Запуск web-interface с аналитикой конкретной модели
+```python
+streamlit run src/app.py -- --model models/bagging_model.pkl --data data/processed/consolidated_traffic_data.csv
 ```
-## Аналитика результатов (запускать из корня)
-```bash
+## ВНИМАНИЕ: разделение на train/test происходит внутри. Команда просто принимает путь к полному датасету
+## Конфиг src/config.py поддерживает изменения моделей и автоматизированный pipeline
+### Запуск web-interface с аналитикой всех результатов
+```
 streamlit run src/analyze.py
 ```
+### Доступные модели
+
+Ключ модели передаётся через аргумент -m. Все модели определены в config.py.
+
+- rf        : Random Forest (100 деревьев, max_depth=10)
+- rf_deep   : Random Forest (500 деревьев, max_depth=15)
+- gb        : Gradient Boosting (100 деревьев)
+- lr        : Logistic Regression
+- dt        : Decision Tree
+- bag_dt    : Bagging с Decision Tree (50 estimators) 
+- xgb       : XGBoost (300 деревьев, learning_rate=0.05, max_depth=8) — рекомендуемый
+
+### Профили предобработки данных
+
+Профили задаются через аргумент -p. Они описаны в config.py.
+
+- default               : Удаляется только колонка duration, новые признаки не создаются.
+- drop_active_idle      : Удаляются все признаки, содержащие active или idle. Добавляются три новых отношения: avg_packet_size, total_iat_ratio, mean_iat_ratio.
+- clean_max_biat        : Удаляется фиксированный список шумных признаков (см. config.py).
+- feature_engineering   : Генерация всех попарных взаимодействий (A*B, A/B, B/A) для числовых колонок.
+
+### Аргументы командной строки для run.py
+
+- -t          (обязательный)   Флаг запуска обучения.
+- -m          (обязательный)   Ключ модели из списка выше.
+- -d          (обязательный)   Путь к обучающему CSV-файлу.
+- -s          (обязательный)   Путь для сохранения обученной модели (.pkl).
+- -p          *(необязательный)* Профиль обработки данных (по умолчанию default).
+- --pca       *(необязательный)* Включить PCA (сохраняется 95% дисперсии). Важность признаков в этом режиме не вычисляется.
+
+> Примеры команд
+
+# Обучение Bagging Decision Tree с профилем feature_engineering
+```
+python src/run.py -t -m bag_dt -p feature_engineering -d data/processed/consolidated_traffic_data.csv -s models/bag_dt.pkl
+```
+# Обучение модели с PCA на примере XGBoost
+```
+python src/run.py -t -m xgb --pca -d data/processed/consolidated_traffic_data.csv -s models/xgb_pca.pkl
+```
+## Веб-интерфейс (app.py)
+
+Запуск:
+```
+streamlit run src/app.py -- --model <путь_к_модели> --data <путь_к_тестовым_данным>
+```
+Возможности веб-интерфейса:
+- Автоматическое сохранение результатов модели
+- Расчёт метрик: Accuracy, Precision, Recall, F1, AUC-ROC, Specificity.
+- Отображение топ-10 признаков по важности (недоступно при PCA).
+- Сохранение результатов инференса в папку results/.
+
+### Аналитика экспериментов (analyze.py)
+
+#### Запуск:
+```
+streamlit run src/analyze.py
+```
+#### Возможности:
+- Таблица со сводкой по всем запускам из папки results.
+- Детальный просмотр выбранного эксперимента: метрики и полный список важности признаков.
+- График топ-20 признаков.
+
+### Формат входных данных
+
+Ожидается CSV-файл с колонками признаков и обязательной колонкой traffic_type, содержащей метки классов (например, VPN или NonVPN). Значения -1 автоматически заменяются на 0.
+
+### Детали реализации
+
+- Препроцессор (DataPreprocessor): удаляет признаки по паттернам или точным именам, генерирует новые признаки по формулам, создаёт попарные взаимодействия (если включена соответствующая опция).
+- Пайплайн sklearn: последовательность Preprocessor → StandardScaler → (PCA) → Classifier.
+- Сохранение модели: вместе с пайплайном сохраняются метаданные: имя алгоритма, список исходных признаков, обработанные признаки и их важности.
+- Важность признаков: вычисляется через feature_importances_ или coef_, для Bagging усредняется по базовым деревьям, для неподдерживаемых моделей используется Permutation Importance.
+
+### Примечания
+
+- При использовании PCA важность признаков не сохраняется.
+- Профиль feature_engineering генерирует большое количество признаков. Медленное обучение гарантированно.
+- JSON-отчёты создаются автоматически при обучении, а также могут быть сохранены вручную из веб-интерфейса.
+
+#### Лицензия
+-- пока нет (в разработке)
