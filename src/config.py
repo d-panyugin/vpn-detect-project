@@ -1,8 +1,9 @@
-
+# src/config.py
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, BaggingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 import xgboost as xgb
+
 MODEL_REGISTRY = {
     "rf": RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42, n_jobs=-1),
     "rf_deep": RandomForestClassifier(n_estimators=500, max_depth=15, random_state=42, n_jobs=-1),
@@ -24,14 +25,14 @@ MODEL_REGISTRY = {
 # --- PROFILE REGISTRY ---
 PIPELINE_PROFILES = {
     "default": {
-        "description": "Удаляем только duration и мусор.",
+        "description": "Базовый профиль. Удаляем только duration и мусор.",
         "drop_patterns": [], 
         "drop_exact": ["duration"],
         "new_features": [] 
     },
 
     "drop_active_idle": {
-        "description": "Удаляем все признаки с active/idle в названии (наименее важные). Добавляем вручную признак, ",
+        "description": "Удаляем признаки active/idle. Добавляем агрегации.",
         "drop_patterns": ["active", "idle"],
         "drop_exact": ["duration"],
         "new_features": [
@@ -42,7 +43,7 @@ PIPELINE_PROFILES = {
     },
 
     "clean_max_biat": {
-        "description": "Удаление конкретных шумных признаков.",
+        "description": "Агрессивная очистка шумных признаков.",
         "drop_patterns": [], 
         "drop_exact": [
             "std_active", "mean_idle", "mean_active", "max_active", "min_active", 
@@ -53,7 +54,7 @@ PIPELINE_PROFILES = {
     },
 
     "feature_engineering": {
-        "description": "Добавляем в датасет попарные произведения / частные признаков",
+        "description": "Генерация полиномиальных признаков.",
         "drop_patterns": [],
         "drop_exact": [],
         "new_features": [],

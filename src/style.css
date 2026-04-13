@@ -1,71 +1,77 @@
-/* src\style.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+/* src/style.css */
 
-:root {
-  --primary-color: #F25C54;
-  --secondary-color: #F7B267;
-  --text-color: #39393A;
-  --bg-color: #F0F2F6;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-  color: var(--text-color);
-  background-color: var(--bg-color);
+/* Global */
+.main {
+    background-color: #F8F9FA;
 }
 
 h1 {
-  font-weight: 800;
-  text-align: center;
-  background: linear-gradient(90deg, #F7B267, #F79D65, #F4845F, #F27059, #F25C54);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 1rem;
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 800;
+    color: #2c3e50;
+    letter-spacing: -0.5px;
 }
 
-/* Карточки метрик */
-div[data-testid="stMetric"] {
-  background-color: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  border-left: 4px solid var(--secondary-color);
+/* Model Cards */
+.model-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+    height: 100%;
+    transition: all 0.3s ease;
 }
 
-/* Кнопки */
-.stButton>button {
-  background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
-  color: white;
-  border-radius: 8px;
-  border: none;
-  padding: 10px 24px;
-  font-weight: 600;
+.winner-card {
+    border: 2px solid #2ecc71;
+    background-color: #f0fff4;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(46, 204, 113, 0.2);
 }
 
-.stButton>button:hover {
-  opacity: 0.9;
-  color: white;
+.loser-card {
+    border: 1px solid #e9ecef;
+    opacity: 0.85;
 }
 
-/* Табы */
-.stTabs [data-baseweb="tab-list"] {
-  gap: 8px;
+/* Typography within cards */
+.metric-label {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
 }
 
-.stTabs [data-baseweb="tab"] {
-  border-radius: 8px 8px 0 0;
-  background-color: white;
-  border: 1px solid #e0e0e0;
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
 }
 
-.stTabs [aria-selected="true"] {
-  background-color: white;
-  border-bottom: 2px solid var(--primary-color);
+.delta-pos {
+    color: #27ae60;
+    font-weight: bold;
+    font-size: 0.9rem;
 }
 
-/* Субтитль модели */
-.model-subtitle {
-  font-size: 0.6em;
-  color: #666;
-  font-weight: 400;
+.delta-neg {
+    color: #e74c3c;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Basement */
+.basement-header {
+    margin-top: 50px;
+    border-bottom: 2px solid #34495e;
+    padding-bottom: 10px;
+    color: #34495e;
+}
+
+/* Analyze Page specific */
+.stDataFrame {
+    width: 100%;
 }
