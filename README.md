@@ -1,54 +1,40 @@
 # VPN Traffic Detector
 
 Проект для обнаружения VPN-трафика методами машинного обучения.
+ 
+Включает автоматизированный пайплайн обучения, веб-интерфейс для настройки и запуска обучения, а также хаб для сравнения моделей и анализа истории экспериментов.
 ## Для оценки моделей я разработал автоматическую систему оценки моделей
-> Что система умеет?
-- Автоматический train/test split
-- config.py для автоматизированной настройки pipeline и конфигурации моделей в одном месте.
-- Обучение модели одной командой (см. ниже)
-- Веб-интерфейс на streamlit с аналитикой по модели или всем моделям сразу с dashboard по метрикам одной командой.
-- Модуль автоматического сохранения результатов модели.
-## В планах:
-- Детект аномалий
-## 📁 Структура проекта
-.
-- ├── src/
-- │ ├── run.py # Скрипт обучения моделей (CLI)
-- │ ├── app.py # Веб-интерфейс для инференса и оценки
-- │ ├── analyze.py # Визуализация истории экспериментов
-- │ ├── core.py # Основные функции: пайплайн, препроцессор, обучение
-- │ ├── config.py # Реестр моделей и профилей обработки данных
-- │ └── style.css # Стили для Streamlit
-- ├─ data/processed # Датасеты (.csv)
-- │ └── consolidated_traffic_data.csv
-- ├── models/ # Сохранённые модели (.pkl)
-- ├── results/ # JSON‑отчёты экспериментов
-- └── README.md # Документация
-
-## 🚀 Быстрый старт
+> Что умеет система?
+- Автоматический train/test split (70/30) при обучении.
+- Единый конфигурационный файл для моделей и препроцессинга (`config.py`).
+- Запуск обучения через веб-интерфейс (`train.py`) или консольную команду (`run.py`).
+- Веб-интерфейс для попарного сравнения моделей с расчётом метрик, визуализацией расхождений и SHAP-объяснениями.
+- Просмотр истории всех экспериментов с таблицей метрик и графиками важности признаков.
+- Автоматическое сохранение результатов обучения в JSON.
 
 ### 1. Установка зависимостей
-
 ```bash
-pip install streamlit pandas numpy scikit-learn plotly joblib xgboost
+pip install streamlit pandas numpy scikit-learn plotly joblib xgboost shap
 ```
+### 2. Запуск обучения через веб-интерфейс (рекомендуется)
+```
+streamlit run src/train.py
+```
+В интерфейсе можно выбрать модель, профиль препроцессинга, указать путь к данным и папку для сохранения модели.
+После запустится обучение, и модель с отчётом сохранятся автоматически.
+### 3. Запуск web-interface с аналитикой всех результатов
+```
+streamlit run src/analyze.py
+```
+- Experiment History – таблица всех прошлых запусков, детализация по клику, топ-20 признаков.
+- Model Comparison – выбор двух моделей и датасета, сравнение по любой метрике, гистограммы вероятностей, строки с расхождениями, SHAP-объяснения для отдельных предсказаний.
 
+## Возможности интерфейса продублированы консольными командами
 ### Запуск обучения
 ```python
 python src/run.py -t -m bag_dt -d data/processed/consolidated_traffic_data.csv -s models/bagging_model.pkl
 ```
-### Запуск web-interface с аналитикой конкретной модели
-```python
-streamlit run src/app.py -- --model models/bagging_model.pkl --data data/processed/consolidated_traffic_data.csv
-```
-## ВНИМАНИЕ: разделение на train/test происходит внутри. Команда просто принимает путь к полному датасету
-## Конфиг src/config.py поддерживает изменения моделей и автоматизированный pipeline
-### Запуск web-interface с аналитикой всех результатов
-```
-streamlit run src/analyze.py
-```
 ### Доступные модели
-
 Ключ модели передаётся через аргумент -m. Все модели определены в config.py.
 
 - rf        : Random Forest (100 деревьев, max_depth=10)
@@ -87,17 +73,6 @@ python src/run.py -t -m bag_dt -p feature_engineering -d data/processed/consolid
 ```
 python src/run.py -t -m xgb --pca -d data/processed/consolidated_traffic_data.csv -s models/xgb_pca.pkl
 ```
-## Веб-интерфейс (app.py)
-
-Запуск:
-```
-streamlit run src/app.py -- --model <путь_к_модели> --data <путь_к_тестовым_данным>
-```
-Возможности веб-интерфейса:
-- Автоматическое сохранение результатов модели
-- Расчёт метрик: Accuracy, Precision, Recall, F1, AUC-ROC, Specificity.
-- Отображение топ-10 признаков по важности (недоступно при PCA).
-- Сохранение результатов инференса в папку results/.
 
 ### Аналитика экспериментов (analyze.py)
 
@@ -126,6 +101,22 @@ streamlit run src/analyze.py
 - При использовании PCA важность признаков не сохраняется.
 - Профиль feature_engineering генерирует большое количество признаков. Медленное обучение гарантированно.
 - JSON-отчёты создаются автоматически при обучении, а также могут быть сохранены вручную из веб-интерфейса.
+
+## 📁 Структура проекта
+.
+├── src/
+│   ├── run.py          # CLI training script
+│   ├── app.py          # Model Duel web interface (deprecated)
+│   ├── analyze.py      # Analysis Hub (history + comparison)
+│   ├── core.py         # Core pipeline and preprocessing
+│   ├── config.py       # Model registry and preprocessing profiles
+│   └── style.css       # Streamlit styling
+├── data/
+│   └── processed/
+│       └── consolidated_traffic_data.csv
+├── models/             # Saved .pkl models
+├── results/            # JSON experiment reports
+└── README.md
 
 #### Лицензия
 -- пока нет (в разработке)
