@@ -79,18 +79,18 @@ streamlit run src/analyze.py
 
 ## 📁 Структура проекта
 .
-├── src/
-│   ├── run.py          # CLI training script
-│   ├── app.py          # Model Duel web interface (deprecated)
-│   ├── analyze.py      # Analysis Hub (history + comparison)
-│   ├── core.py         # Core pipeline and preprocessing
-│   ├── config.py       # Model registry and preprocessing profiles
-│   └── style.css       # Streamlit styling
-├── data/
-│   └── processed/
-│       └── consolidated_traffic_data.csv
-├── models/             # Saved .pkl models
-├── results/            # JSON experiment reports
+- ├── src/
+- │   ├── run.py          # CLI training script
+- │   ├── app.py          # Model Duel web interface (deprecated)
+- │   ├── analyze.py      # Analysis Hub (history + comparison)
+- │   ├── core.py         # Core pipeline and preprocessing
+- │   ├── config.py       # Model registry and preprocessing profiles
+- │   └── style.css       # Streamlit styling
+- ├── data/
+- │   └── processed/
+- │       └── consolidated_traffic_data.csv
+- ├── models/             # Saved .pkl models
+- ├── results/            # JSON experiment reports
 └── README.md
 
 #### Лицензия
