@@ -29,11 +29,6 @@ streamlit run src/analyze.py
 - Experiment History – таблица всех прошлых запусков, детализация по клику, топ-20 признаков.
 - Model Comparison – выбор двух моделей и датасета, сравнение по любой метрике, гистограммы вероятностей, строки с расхождениями, SHAP-объяснения для отдельных предсказаний.
 
-## Возможности интерфейса продублированы консольными командами
-### Запуск обучения
-```python
-python src/run.py -t -m bag_dt -d data/processed/consolidated_traffic_data.csv -s models/bagging_model.pkl
-```
 ### Доступные модели
 Ключ модели передаётся через аргумент -m. Все модели определены в config.py.
 
@@ -53,26 +48,6 @@ python src/run.py -t -m bag_dt -d data/processed/consolidated_traffic_data.csv -
 - drop_active_idle      : Удаляются все признаки, содержащие active или idle. Добавляются три новых отношения: avg_packet_size, total_iat_ratio, mean_iat_ratio.
 - clean_max_biat        : Удаляется фиксированный список шумных признаков (см. config.py).
 - feature_engineering   : Генерация всех попарных взаимодействий (A*B, A/B, B/A) для числовых колонок.
-
-### Аргументы командной строки для run.py
-
-- -t          (обязательный)   Флаг запуска обучения.
-- -m          (обязательный)   Ключ модели из списка выше.
-- -d          (обязательный)   Путь к обучающему CSV-файлу.
-- -s          (обязательный)   Путь для сохранения обученной модели (.pkl).
-- -p          *(необязательный)* Профиль обработки данных (по умолчанию default).
-- --pca       *(необязательный)* Включить PCA (сохраняется 95% дисперсии). Важность признаков в этом режиме не вычисляется.
-
-> Примеры команд
-
-# Обучение Bagging Decision Tree с профилем feature_engineering
-```
-python src/run.py -t -m bag_dt -p feature_engineering -d data/processed/consolidated_traffic_data.csv -s models/bag_dt.pkl
-```
-# Обучение модели с PCA на примере XGBoost
-```
-python src/run.py -t -m xgb --pca -d data/processed/consolidated_traffic_data.csv -s models/xgb_pca.pkl
-```
 
 ### Аналитика экспериментов (analyze.py)
 
