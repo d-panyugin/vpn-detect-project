@@ -1,0 +1,82 @@
+{
+    "timestamp": "2026-04-16 22:26:36",
+    "model_name": "XGB",
+    "run_name": "XGB_drop_active_idle",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.9371929432782492,
+        "precision": 0.921545542117093,
+        "recall": 0.9564541213063764,
+        "f1_score": 0.9386753883892068
+    },
+    "feature_importance_full": [
+        {
+            "feature": "total_fiat",
+            "importance": 0.03949659317731857
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.037099361419677734
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.05692741647362709
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.09269414097070694
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.06671755760908127
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.040349092334508896
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.047144193202257156
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.05292102321982384
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.05131895840167999
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.04751090332865715
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.061395637691020966
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.05859609320759773
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.05560595914721489
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.0776163712143898
+        },
+        {
+            "feature": "avg_packet_size",
+            "importance": 0.08889564126729965
+        },
+        {
+            "feature": "total_iat_ratio",
+            "importance": 0.07010171562433243
+        },
+        {
+            "feature": "mean_iat_ratio",
+            "importance": 0.0556093193590641
+        }
+    ]
+}

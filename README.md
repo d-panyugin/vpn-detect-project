@@ -16,7 +16,7 @@
 ```bash
 pip install streamlit pandas numpy scikit-learn plotly joblib xgboost shap
 ```
-### 2. Запуск обучения через веб-интерфейс (рекомендуется)
+### 2. Запуск обучения через веб-интерфейс
 ```
 streamlit run src/train.py
 ```
@@ -54,26 +54,6 @@ python src/run.py -t -m bag_dt -d data/processed/consolidated_traffic_data.csv -
 - clean_max_biat        : Удаляется фиксированный список шумных признаков (см. config.py).
 - feature_engineering   : Генерация всех попарных взаимодействий (A*B, A/B, B/A) для числовых колонок.
 
-### Аргументы командной строки для run.py
-
-- -t          (обязательный)   Флаг запуска обучения.
-- -m          (обязательный)   Ключ модели из списка выше.
-- -d          (обязательный)   Путь к обучающему CSV-файлу.
-- -s          (обязательный)   Путь для сохранения обученной модели (.pkl).
-- -p          *(необязательный)* Профиль обработки данных (по умолчанию default).
-- --pca       *(необязательный)* Включить PCA (сохраняется 95% дисперсии). Важность признаков в этом режиме не вычисляется.
-
-> Примеры команд
-
-# Обучение Bagging Decision Tree с профилем feature_engineering
-```
-python src/run.py -t -m bag_dt -p feature_engineering -d data/processed/consolidated_traffic_data.csv -s models/bag_dt.pkl
-```
-# Обучение модели с PCA на примере XGBoost
-```
-python src/run.py -t -m xgb --pca -d data/processed/consolidated_traffic_data.csv -s models/xgb_pca.pkl
-```
-
 ### Аналитика экспериментов (analyze.py)
 
 #### Запуск:
@@ -100,16 +80,14 @@ streamlit run src/analyze.py
 
 - При использовании PCA важность признаков не сохраняется.
 - Профиль feature_engineering генерирует большое количество признаков. Медленное обучение гарантированно.
-- JSON-отчёты создаются автоматически при обучении, а также могут быть сохранены вручную из веб-интерфейса.
 
 ## 📁 Структура проекта
 .
 ├── src/
-│   ├── run.py          # CLI training script
-│   ├── app.py          # Model Duel web interface (deprecated)
-│   ├── analyze.py      # Analysis Hub (history + comparison)
 │   ├── core.py         # Core pipeline and preprocessing
 │   ├── config.py       # Model registry and preprocessing profiles
+│   ├── train.py        # Model customization
+│   ├── analyze.py
 │   └── style.css       # Streamlit styling
 ├── data/
 │   └── processed/

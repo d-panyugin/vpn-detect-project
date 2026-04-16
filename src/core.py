@@ -115,8 +115,6 @@ def save_run_results(model_data, metrics, output_path):
         json.dump(result_data, f, ensure_ascii=False, indent=4)
 
 def train_pipeline(algo_name, data_path, output_path, profile_name="default", use_pca=False):
-    print(f"[INFO] Profile: {profile_name} | Model: {algo_name}")
-    
     profile_config = PIPELINE_PROFILES.get(profile_name)
     if not profile_config:
         raise ValueError(f"Профиль '{profile_name}' не найден.")

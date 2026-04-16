@@ -1,0 +1,70 @@
+{
+    "timestamp": "2026-04-16 22:07:59",
+    "model_name": "LR",
+    "run_name": "LR_clean_max_biat",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.5849709691826709,
+        "precision": 0.5645373724069805,
+        "recall": 0.761830704287936,
+        "f1_score": 0.6485106382978724
+    },
+    "feature_importance_full": [
+        {
+            "feature": "total_fiat",
+            "importance": 0.38222440416955616
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.10000481360430916
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.2526820688766086
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.009409168748210983
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.3463607132350823
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.26999640894054355
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.2735172488263517
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.13449776043884049
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.5248498102465274
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 1.9335593897403558
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.11935178526863234
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.2414360609732994
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.5170389870096814
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.9320696112815622
+        }
+    ]
+}
