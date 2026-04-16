@@ -16,7 +16,7 @@
 ```bash
 pip install streamlit pandas numpy scikit-learn plotly joblib xgboost shap
 ```
-### 2. Запуск обучения через веб-интерфейс (рекомендуется)
+### 2. Запуск обучения через веб-интерфейс
 ```
 streamlit run src/train.py
 ```
