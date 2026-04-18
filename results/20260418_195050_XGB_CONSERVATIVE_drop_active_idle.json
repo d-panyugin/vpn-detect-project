@@ -1,0 +1,82 @@
+{
+    "timestamp": "2026-04-18 19:50:50",
+    "model_name": "XGB_CONSERVATIVE",
+    "run_name": "XGB_CONSERVATIVE_drop_active_idle",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.8939816882536846,
+        "precision": 0.9534022724371249,
+        "recall": 0.8295934236836259,
+        "f1_score": 0.8871992871992872
+    },
+    "feature_importance_full": [
+        {
+            "feature": "total_fiat",
+            "importance": 0.048592306673526764
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.03819843754172325
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.05312490090727806
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.09220210462808609
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.06383221596479416
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.0392424650490284
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.05547044426202774
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.05942467227578163
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.04910465329885483
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.030818086117506027
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.06862931698560715
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.044031377881765366
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.05012026056647301
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.06623190641403198
+        },
+        {
+            "feature": "avg_packet_size",
+            "importance": 0.08549439907073975
+        },
+        {
+            "feature": "total_iat_ratio",
+            "importance": 0.09123274683952332
+        },
+        {
+            "feature": "mean_iat_ratio",
+            "importance": 0.06424964964389801
+        }
+    ]
+}

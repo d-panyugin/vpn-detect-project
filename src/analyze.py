@@ -11,7 +11,7 @@ import shap
 import matplotlib.pyplot as plt
 import warnings
 import sys
-
+import plotly.graph_objects as go
 from pathlib import Path
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
@@ -330,72 +330,236 @@ with tab_comparison:
                             plt.close(fig)
                         except Exception as e:
                             st.error(f"SHAP generation failed: {e}")
-
 # ======================== #
-# TAB 3: RESEARCH GRAPH    #
+# TAB 3: RESEARCH LAB      #
 # ======================== #
 with tab_research:
-    st.header("Model Ranking & Improvement Trend")
+    st.header("Research Lab: Архитектура vs Данные")
     
     df_hist = load_history("results")
     
     if not df_hist.empty:
-        # 1. Выбор метрики
-        metric = st.selectbox("Select Metric to Sort By", ["F1", "Accuracy", "ROC-AUC"], index=0)
-        
-        # 2. Достаем имя датасета
-        df_hist['Dataset_Name'] = df_hist['Raw'].apply(lambda x: x.get('train_dataset', 'unknown'))
-        
-        # 3. Сортировка (Рейтинг)
-        df_sorted = df_hist.sort_values(by=metric).reset_index(drop=True)
-        
-        # 4. Подписи
-        def get_profile(run_name):
-            parts = run_name.split('_')
-            return parts[-1] if len(parts) > 1 else 'default'
+        metrics_list = ['accuracy', 'precision', 'recall', 'f1_score']
+        for m in metrics_list:
+            df_hist[m] = df_hist['Raw'].apply(lambda x: x['metrics'].get(m, 0))
             
-        df_sorted['Label'] = df_sorted['Model'] + " (" + df_sorted['Run'].apply(get_profile) + ")"
-        
-        # 5. График
-        # trendline_scope='traces' -> создает линию тренда ДЛЯ КАЖДОЙ МОДЕЛИ (цвет совпадает)
-        fig = px.scatter(
-            df_sorted,
-            x=df_sorted.index,
-            y=metric,
-            text='Label',
-            title=f"Model Performance Ladder ({metric})",
-            color='Model',
-            trendline="ols",
-            trendline_scope="traces", # Ключевой момент: отдельный тренд для каждой группы
-            hover_data=['Dataset_Name']
-        )
-        
-        # 6. Настройка линий и точек через цикл
-        for trace in fig.data:
-            # Если в имени есть "Trend" — это линия аппроксимации
-            if "Trend" in trace.name:
-                trace.update(
-                    mode='lines',         # Только линия
-                    line=dict(width=4),   # Жирная
-                    opacity=0.5           # Чуть прозрачнее, чтобы не путать с данными
-                )
-            # Иначе это основные данные (точки)
-            else:
-                trace.update(
-                    mode='lines+markers+text', # Соединяем точки + сами точки + подписи
-                    textposition='top center',
-                    textfont=dict(size=14, color='black'), # Крупный черный текст
-                    marker=dict(size=12, opacity=0.9),
-                    line=dict(width=2)
-                )
+        df_hist['Profile'] = df_hist['Run'].apply(lambda x: x.split('_', 1)[1] if '_' in x else 'default')
+        df_hist['Dataset'] = df_hist['Raw'].apply(lambda x: x.get('train_dataset', 'unknown'))
+        df_hist['Timestamp'] = pd.to_datetime(df_hist['Timestamp'], errors='coerce')
+        df_hist = df_hist.dropna(subset=['Timestamp']).sort_values('Timestamp').reset_index(drop=True)
 
-        fig.update_layout(
-            xaxis_title="Experiment Rank (Worst -> Best)",
-            yaxis_title=metric,
-            showlegend=True
+        def get_model_family(model_name):
+            model_upper = model_name.upper()
+            if 'XGB' in model_upper: return 'XGBoost'
+            if 'STACK' in model_upper: return 'Стекинг'
+            if 'GB' in model_upper: return 'Gradient Boosting'
+            if 'LR' in model_upper: return 'Линейные (LR)'
+            if 'RF' in model_upper or 'DT' in model_upper or 'BAG' in model_upper: return 'Деревья (RF/DT)'
+            return model_name
+
+        df_hist['Model_Family'] = df_hist['Model'].apply(get_model_family)
+        df_hist['Utopia_Dist'] = np.sqrt((1 - df_hist['precision'])**2 + (1 - df_hist['recall'])**2)
+
+        # ГЛОБАЛЬНЫЙ ФИЛЬТР: Убираем LR из анализа архитектур, чтобы не ломать масштаб
+        df_hist_no_lr = df_hist[df_hist['Model_Family'] != 'Линейные (LR)'].copy()
+
+        # Вспомогательная функция для центрирования
+        def render_tall_chart(fig, height=700, width=800):
+            fig.update_layout(height=height, width=width)
+            col1, col2, col3 = st.columns([1, 3, 1])
+            with col2:
+                st.plotly_chart(fig, use_container_width=False)
+
+        # ========================================== #
+        # ГРАФИК 1: Архитектура vs Данные (F1) - БЕЗ LR
+        # ========================================== #
+        st.subheader("Доказательство тезиса: Архитектура первична, данные вторичны")
+        st.caption("Каждая точка — запуск с профилем препроцессинга. Компактный кластер = модель игнорирует шум в данных.")
+
+        fig_f1 = px.strip(
+            df_hist_no_lr, 
+            x="Model_Family", 
+            y="f1_score", 
+            color="Profile", 
+            stripmode="overlay",
+            title="Распределение F1 Score по Семействам (цвет = профиль)"
+        )
+        fig_f1.add_trace(px.box(df_hist_no_lr, x="Model_Family", y="f1_score").data[0])
+        fig_f1.update_traces(marker=dict(opacity=0.7, size=8), selector=dict(type='box'))
+        render_tall_chart(fig_f1, height=700, width=800)
+        st.divider()
+
+        # ========================================== #
+        # ГРАФИК 2: Микроскоп P vs R (Квадрат 1:1)
+        # ========================================== #
+        st.subheader("Матрица ошибок: Микроскоп Precision vs Recall")
+        st.caption("Физические оси равны (1:1). Масштаб 0.8–1.0. Диагональ — баланс смещения ошибок (FP vs FN).")
+
+        fig_pr = px.scatter(
+            df_hist_no_lr, 
+            x="recall", 
+            y="precision", 
+            color="Model_Family",  
+            symbol="Profile",     
+            hover_data={"Model": True, "Run": True}
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        fig_pr.update_xaxes(range=[0.8, 1.0], dtick=0.05)
+        fig_pr.update_yaxes(range=[0.8, 1.0], dtick=0.05)
+
+        fig_pr.add_shape(type="line", x0=0.8, y0=0.8, x1=1.0, y1=1.0,
+                         line=dict(color="gray", width=2, dash="dash"))
         
+        fig_pr.update_traces(marker=dict(size=12))
+        
+        fig_pr.update_layout(
+            width=700, 
+            height=700, 
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            margin=dict(l=60, r=20, b=40, t=80)
+        )
+        
+        col1, col2, col3 = st.columns([1, 3, 1])
+        with col2:
+            st.plotly_chart(fig_pr, use_container_width=False)
+        st.divider()
+
+        # ========================================== #
+        # ГРАФИК 3: Boxplot компромисса - БЕЗ LR
+        # ========================================== #
+        st.subheader("Метрика компромисса: $D = \\sqrt{(1-P)^2 + (1-R)^2}$")
+        st.caption("Низкий и узкий ящик = модель стабильна и близка к идеалу.")
+
+        fig_dist = px.strip(df_hist_no_lr, x="Model_Family", y="Utopia_Dist", color="Profile")
+        fig_dist.add_trace(px.box(df_hist_no_lr, x="Model_Family", y="Utopia_Dist").data[0])
+        fig_dist.update_traces(marker=dict(size=8, opacity=0.7), selector=dict(type='box'))
+        fig_dist.update_yaxes(title_text="Distance to (1, 1) [меньше = лучше]")
+        render_tall_chart(fig_dist, height=700, width=800)
+        st.divider()
+
+        # ========================================== #
+        # ГРАФИК 4: Журнал исследований (SOTA Progression)
+        # ========================================== #
+        st.subheader("Журнал исследований: Эволюция SOTA (State-of-the-Art)")
+        st.caption("Линия показывает рекордную метрику F1 на момент эксперимента. Скачки наверх — смена архитектуры, давшая прорыв.")
+
+        df_sota = df_hist_no_lr.sort_values('Timestamp').copy()
+        df_sota['SOTA_F1'] = df_sota['f1_score'].cummax()
+        
+        df_sota['Is_New_Record'] = df_sota['f1_score'] >= df_sota['SOTA_F1']
+        df_records = df_sota[df_sota['Is_New_Record']].drop_duplicates(subset=['SOTA_F1'], keep='first')
+
+        fig_journal = px.scatter(
+            df_sota,
+            x="Timestamp",
+            y="f1_score",
+            color="Model_Family",
+            symbol="Profile",
+            hover_data=["Run", "Model"],
+            title="История экспериментов: Фоновый шум vs Рекорды",
+            opacity=0.4 
+        )
+        
+        # Используем импортированный go
+        fig_journal.add_trace(go.Scatter(
+            x=df_records['Timestamp'],
+            y=df_records['SOTA_F1'],
+            line=dict(color="black", width=3, dash="dash"),
+            mode="lines+markers",
+            name="SOTA F1 Record",
+            marker=dict(size=10, symbol="star", color="black")
+        ))
+        
+        for _, row in df_records.iterrows():
+            fig_journal.add_annotation(
+                x=row['Timestamp'], y=row['SOTA_F1'],
+                text=f"{row['Model_Family']}<br>({row['Profile']})",
+                showarrow=True, arrowhead=1, ax=20, ay=-30,
+                font=dict(size=10, color="black", family="Courier New")
+            )
+
+        fig_journal.update_yaxes(title_text="F1 Score")
+        render_tall_chart(fig_journal, height=700, width=800)
+        st.divider()
+
+        # ========================================== #
+        # БЛОК 5: Инъекция аномалий (All vs All Matrix)
+        # ========================================== #
+        st.subheader("Стресс-тестирование: All vs All Матрица Робастности")
+        st.caption("Автоматический прогон искажений с разной силой. Показывает, при каком уровне яда архитектура начинает сыпаться.")
+        
+        with st.expander("Настройки стресс-теста", expanded=True):
+            stress_data_name = st.selectbox("Целевой датасет", get_files("data/processed", ".csv"), key="stress_data_sel")
+            scenario = st.selectbox("Сценарий искажения", [
+                "Сценарий 1: Инфляция максимальных значений (max_*)",
+                "Сценарий 2: Дефляция минимальных значений (min_*)"
+            ], key="stress_scen_sel")
+
+        models_list = get_files("models", ".pkl")
+        
+        if stress_data_name and models_list:
+            if st.button("Запустить мульти-стресс-тест", type="primary"):
+                with st.spinner("Вычисление деградации на 3 уровнях искажения..."):
+                    path_d = Path("data/processed") / stress_data_name
+                    df_clean = pd.read_csv(path_d).replace(-1, 0)
+                    y_true = df_clean['traffic_type'].str.contains('VPN', na=False) if 'traffic_type' in df_clean.columns else None
+                    
+                    results_stress = []
+                    multipliers = [2.0, 5.0, 10.0]
+                    
+                    for model_name in models_list:
+                        try:
+                            model_data = load_model_pipeline(Path("models") / model_name)
+                            X_clean = df_clean[model_data['features']]
+                            
+                            pred_clean = model_data['model'].predict(X_clean)
+                            f1_clean = f1_score(y_true, pred_clean, zero_division=0) if y_true is not None else 0.0
+                            
+                            algo_key = model_name.replace('.pkl', '').split('_')[0]
+                            family = get_model_family(algo_key)
+                            
+                            for mult in multipliers:
+                                df_distorted = df_clean.copy()
+                                if "Сценарий 1" in scenario:
+                                    max_cols = [c for c in X_clean.columns if c.startswith('max_')]
+                                    for col in max_cols:
+                                        df_distorted[col] = np.maximum(X_clean[col] * mult, X_clean[col].mean())
+                                else:
+                                    min_cols = [c for c in X_clean.columns if c.startswith('min_')]
+                                    for col in min_cols:
+                                        df_distorted[col] = np.minimum(X_clean[col] / mult, X_clean[col].mean())
+                                        
+                                X_distorted = df_distorted[model_data['features']]
+                                pred_distorted = model_data['model'].predict(X_distorted)
+                                f1_distorted = f1_score(y_true, pred_distorted, zero_division=0) if y_true is not None else 0.0
+                                
+                                results_stress.append({
+                                    "Family": family,
+                                    "Multiplier": f"x{int(mult)}",
+                                    "Delta_F1": f1_clean - f1_distorted
+                                })
+                        except Exception as e:
+                            pass
+
+                    df_res = pd.DataFrame(results_stress)
+                    
+                    if not df_res.empty:
+                        pivot_stress = df_res.groupby(['Family', 'Multiplier'])['Delta_F1'].mean().reset_index()
+                        
+                        col_order = [f"x{int(m)}" for m in multipliers]
+                        heatmap_data = pivot_stress.pivot(index='Family', columns='Multiplier', values='Delta_F1')
+                        heatmap_data = heatmap_data.reindex(columns=col_order)
+
+                        fig_stress = px.imshow(
+                            heatmap_data.values,
+                            labels=dict(x="Сила искажения", y="Семейство", color="Деградация F1"),
+                            x=heatmap_data.columns,
+                            y=heatmap_data.index,
+                            text_auto=".4f",
+                            aspect="auto",
+                            color_continuous_scale="Reds"
+                        )
+                        fig_stress.update_xaxes(side="top")
+                        render_tall_chart(fig_stress, height=600, width=800)
     else:
-        st.info("No data. Train models first.")
+        st.info("Нет данных. Сначала обучите модели.")

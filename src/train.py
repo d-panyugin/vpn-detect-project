@@ -12,7 +12,7 @@ st.set_page_config(page_title="Train Model", layout="centered")
 st.title("Model Training Hub")
 st.caption("Настройте параметры и запустите обучение прямо в браузере.")
 
-# --- СЛОВАРИ ДЛЯ ПЕРЕВОДА КОДА НА РУССКИЙ ЯЗЫК ---
+# --- СЛОВАРИ С ОПИСАНИЕМ МОДЕЛЕЙ И ПАЙПЛАЙНОВ ---
 MODEL_LABELS = {
     "rf": "Random Forest (быстрый)",
     "rf_deep": "Random Forest Deep (точный)",
@@ -20,7 +20,10 @@ MODEL_LABELS = {
     "lr": "Logistic Regression",
     "dt": "Decision Tree",
     "bag_dt": "Bagging + Decision Tree",
-    "xgb": "XGBoost (Рекомендуемый)"
+    "xgb": "XGBoost (Рекомендуемый)",
+    "stacking": "Stacking (XGBoost + RandomForest + LogisticRegression -> LogisticRegression)",
+    "stacking_upgraded" : "StackingClassifier(XGB + ExtraTreesClassifier + LogisticRegression -> XGB)",
+    "xgb_conservative" : "XGB с большим штрафом за FP"
 }
 
 PROFILE_LABELS = {
@@ -52,7 +55,7 @@ model_key = st.selectbox(
     format_func=lambda x: MODEL_LABELS.get(x, x)
 )
 
-# Динамическая подсказка по модели (обновляется мгновенно!)
+# Динамическая подсказка по модели
 with st.expander(f"Подробности: {MODEL_LABELS[model_key]}"):
     st.code(str(MODEL_REGISTRY[model_key].get_params()), language="python")
 
@@ -64,7 +67,7 @@ profile_key = st.selectbox(
     format_func=lambda x: PROFILE_LABELS.get(x, x)
 )
 
-# Динамическая подсказка по профилю (обновляется мгновенно!)
+# Динамическая подсказка по профилю
 st.info(f"**Что делает этот профиль:** {PIPELINE_PROFILES[profile_key]['description']}")
 
 use_pca = st.checkbox("Использовать PCA (сократить количество признаков, сохранив 95% информации)")

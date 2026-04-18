@@ -14,6 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, roc_auc_score, log_loss
 from sklearn.inspection import permutation_importance
+from sklearn.ensemble import StackingClassifier
 from sklearn.decomposition import PCA
 
 from .config import MODEL_REGISTRY, PIPELINE_PROFILES
@@ -24,17 +25,22 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
     """
     Универсальный препроцессор.
     """
-    def __init__(self, drop_patterns=None, drop_exact=None, new_features=None, generate_interactions=False):
+    def __init__(self, drop_patterns=None, drop_exact=None, new_features=None, generate_interactions=False, quantile_features=None):
         self.drop_patterns = drop_patterns or []
         self.drop_exact = drop_exact or []
         self.new_features = new_features or []
         self.generate_interactions = generate_interactions
         self.feature_names_in_ = None
         self.feature_names_out_ = None 
+        self.quantile_features = quantile_features or []
 
     def fit(self, X, y=None):
         if hasattr(X, 'columns'):
             self.feature_names_in_ = X.columns.tolist()
+        self.fitted_quantiles_ = {}
+        for col, q_list in self.quantile_features:
+            if col in X.columns:
+                self.fitted_quantiles_[col] = X[col].quantile(q_list).to_dict()
         return self
 
     def transform(self, X):
@@ -62,6 +68,20 @@ class DataPreprocessor(BaseEstimator, TransformerMixin):
                 for col_b in numeric_cols[i+1:]:
                     X[f'{col_a}_x_{col_b}'] = X[col_a] * X[col_b]
                     X[f'{col_a}_div_{col_b}'] = X[col_a] / (X[col_b] + 1e-5)
+
+        X.replace([np.inf, -np.inf], np.nan, inplace=True)
+        X.fillna(0, inplace=True)
+        self.feature_names_out_ = X.columns.tolist()
+        for col, q_list in self.quantile_features:
+            if col in X.columns and col in self.fitted_quantiles_:
+                for q in q_list:
+                    X[f"{col}_q{int(q*100)}"] = X[col].fillna(0) # Заменяем NaN на 0 перед применением
+                    # Применяем сохраненные границы
+                    X[f"{col}_q{int(q*100)}"] = X[f"{col}_q{int(q*100)}"].clip(
+                        lower=self.fitted_quantiles_[col].get(q, 0),
+                        upper=self.fitted_quantiles_[col].get(q, 0)
+                    )
+                X.drop(columns=[col], inplace=True, errors='ignore') # Дропаем исходный min/max!
 
         X.replace([np.inf, -np.inf], np.nan, inplace=True)
         X.fillna(0, inplace=True)
@@ -169,7 +189,7 @@ def train_pipeline(algo_name, data_path, output_path, profile_name="default", us
          if valid_imps:
              importances = np.mean(valid_imps, axis=0)
             
-    if len(importances) == 0 and not use_pca:
+    if len(importances) == 0 and not use_pca and not isinstance(classifier, StackingClassifier):
         result = permutation_importance(pipeline, X_test.iloc[:300], y_test.iloc[:300], n_repeats=5, random_state=42, n_jobs=-1)
         importances = result.importances_mean
         processed_feature_names = X_test.columns.tolist()
