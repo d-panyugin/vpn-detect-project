@@ -1,0 +1,2130 @@
+{
+    "timestamp": "2026-04-19 09:18:28",
+    "model_name": "STACKING_CONSERVATIVE",
+    "run_name": "STACKING_CONSERVATIVE_feature_engineering",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.827378293881197,
+        "precision": 0.8062176165803109,
+        "recall": 0.8642523883581427,
+        "f1_score": 0.8342268925584387
+    },
+    "feature_importance_full": [
+        {
+            "feature": "duration",
+            "importance": 3.064232170625861e-05
+        },
+        {
+            "feature": "total_fiat",
+            "importance": 6.988911546227702e-05
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.0002764863114544371
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.007171915409557671
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.013755541002444041
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.006658594977904771
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.001869712714271025
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.0058310265271270725
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.004688437452078344
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.004611297953462958
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.0021479498892382886
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.0069076382529344536
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.011854317707636522
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.001262667213735114
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.0066999583151306
+        },
+        {
+            "feature": "min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active",
+            "importance": 0.0002917733571829901
+        },
+        {
+            "feature": "max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_idle",
+            "importance": 0.0003640606300905347
+        },
+        {
+            "feature": "mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_idle",
+            "importance": 0.0006080697457736066
+        },
+        {
+            "feature": "std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_x_total_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_div_total_fiat",
+            "importance": 3.2071737752734844e-05
+        },
+        {
+            "feature": "duration_x_total_biat",
+            "importance": 0.00034878573748770345
+        },
+        {
+            "feature": "duration_div_total_biat",
+            "importance": 0.0006459260989599936
+        },
+        {
+            "feature": "duration_x_min_fiat",
+            "importance": 0.0003372766333897928
+        },
+        {
+            "feature": "duration_div_min_fiat",
+            "importance": 0.0004517497202911601
+        },
+        {
+            "feature": "duration_x_min_biat",
+            "importance": 0.0006681102966885771
+        },
+        {
+            "feature": "duration_div_min_biat",
+            "importance": 0.012197709504760951
+        },
+        {
+            "feature": "duration_x_max_fiat",
+            "importance": 0.00012636403569622913
+        },
+        {
+            "feature": "duration_div_max_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_x_max_biat",
+            "importance": 2.2700007697311e-05
+        },
+        {
+            "feature": "duration_div_max_biat",
+            "importance": 0.00025856514426311636
+        },
+        {
+            "feature": "duration_x_mean_fiat",
+            "importance": 0.0001193521124685174
+        },
+        {
+            "feature": "duration_div_mean_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_x_mean_biat",
+            "importance": 4.849195060146327e-05
+        },
+        {
+            "feature": "duration_div_mean_biat",
+            "importance": 0.002689420293674742
+        },
+        {
+            "feature": "duration_x_flowPktsPerSecond",
+            "importance": 0.0025693239334220906
+        },
+        {
+            "feature": "duration_div_flowPktsPerSecond",
+            "importance": 5.2481140688878155e-08
+        },
+        {
+            "feature": "duration_x_flowBytesPerSecond",
+            "importance": 0.024287832171529536
+        },
+        {
+            "feature": "duration_div_flowBytesPerSecond",
+            "importance": 0.00017276528718959138
+        },
+        {
+            "feature": "duration_x_min_flowiat",
+            "importance": 0.00042204438874956027
+        },
+        {
+            "feature": "duration_div_min_flowiat",
+            "importance": 7.170487744812333e-05
+        },
+        {
+            "feature": "duration_x_max_flowiat",
+            "importance": 0.00013451073041877417
+        },
+        {
+            "feature": "duration_div_max_flowiat",
+            "importance": 0.0039951143929271
+        },
+        {
+            "feature": "duration_x_mean_flowiat",
+            "importance": 0.006164503406437017
+        },
+        {
+            "feature": "duration_div_mean_flowiat",
+            "importance": 0.001979197639349731
+        },
+        {
+            "feature": "duration_x_std_flowiat",
+            "importance": 7.780945269252443e-05
+        },
+        {
+            "feature": "duration_div_std_flowiat",
+            "importance": 0.0003785596095827357
+        },
+        {
+            "feature": "duration_x_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_div_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_div_mean_active",
+            "importance": 0.0007227843610485004
+        },
+        {
+            "feature": "duration_x_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_div_max_active",
+            "importance": 0.0010073001676393712
+        },
+        {
+            "feature": "duration_x_std_active",
+            "importance": 0.00016566588643520972
+        },
+        {
+            "feature": "duration_div_std_active",
+            "importance": 0.005288118342328764
+        },
+        {
+            "feature": "duration_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_div_min_idle",
+            "importance": 0.00011176119302159188
+        },
+        {
+            "feature": "duration_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_div_mean_idle",
+            "importance": 0.0020793024503484654
+        },
+        {
+            "feature": "duration_x_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_div_max_idle",
+            "importance": 0.0003637334250589286
+        },
+        {
+            "feature": "duration_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "duration_div_std_idle",
+            "importance": 0.007564864607007267
+        },
+        {
+            "feature": "total_fiat_x_total_biat",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_div_total_biat",
+            "importance": 0.0021266101393848658
+        },
+        {
+            "feature": "total_fiat_x_min_fiat",
+            "importance": 0.0006350924443060031
+        },
+        {
+            "feature": "total_fiat_div_min_fiat",
+            "importance": 0.0012347463221434477
+        },
+        {
+            "feature": "total_fiat_x_min_biat",
+            "importance": 0.001603278084524064
+        },
+        {
+            "feature": "total_fiat_div_min_biat",
+            "importance": 0.015062752584156822
+        },
+        {
+            "feature": "total_fiat_x_max_fiat",
+            "importance": 0.002358202318244945
+        },
+        {
+            "feature": "total_fiat_div_max_fiat",
+            "importance": 0.004152499004316503
+        },
+        {
+            "feature": "total_fiat_x_max_biat",
+            "importance": 1.7400316194655849e-06
+        },
+        {
+            "feature": "total_fiat_div_max_biat",
+            "importance": 0.000524857683205993
+        },
+        {
+            "feature": "total_fiat_x_mean_fiat",
+            "importance": 0.00039668156610308777
+        },
+        {
+            "feature": "total_fiat_div_mean_fiat",
+            "importance": 0.001265371611324671
+        },
+        {
+            "feature": "total_fiat_x_mean_biat",
+            "importance": 0.00011174061751343226
+        },
+        {
+            "feature": "total_fiat_div_mean_biat",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_x_flowPktsPerSecond",
+            "importance": 0.0015400974691690452
+        },
+        {
+            "feature": "total_fiat_div_flowPktsPerSecond",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_x_flowBytesPerSecond",
+            "importance": 0.005979819581979679
+        },
+        {
+            "feature": "total_fiat_div_flowBytesPerSecond",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_x_min_flowiat",
+            "importance": 0.0002496521406438815
+        },
+        {
+            "feature": "total_fiat_div_min_flowiat",
+            "importance": 0.00012939605822580609
+        },
+        {
+            "feature": "total_fiat_x_max_flowiat",
+            "importance": 0.000430213487178265
+        },
+        {
+            "feature": "total_fiat_div_max_flowiat",
+            "importance": 0.002452766223909175
+        },
+        {
+            "feature": "total_fiat_x_mean_flowiat",
+            "importance": 0.00011784682283177972
+        },
+        {
+            "feature": "total_fiat_div_mean_flowiat",
+            "importance": 0.0007402342432018817
+        },
+        {
+            "feature": "total_fiat_x_std_flowiat",
+            "importance": 3.3396444350816616e-05
+        },
+        {
+            "feature": "total_fiat_div_std_flowiat",
+            "importance": 0.0006931967677052471
+        },
+        {
+            "feature": "total_fiat_x_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_div_min_active",
+            "importance": 0.0008211884624969716
+        },
+        {
+            "feature": "total_fiat_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_div_mean_active",
+            "importance": 0.0007853802946454813
+        },
+        {
+            "feature": "total_fiat_x_max_active",
+            "importance": 3.216415551802945e-05
+        },
+        {
+            "feature": "total_fiat_div_max_active",
+            "importance": 0.0014133334479892001
+        },
+        {
+            "feature": "total_fiat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_div_std_active",
+            "importance": 0.00021066496007932797
+        },
+        {
+            "feature": "total_fiat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_div_min_idle",
+            "importance": 0.0023543136512237566
+        },
+        {
+            "feature": "total_fiat_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_div_mean_idle",
+            "importance": 0.00048095757231981335
+        },
+        {
+            "feature": "total_fiat_x_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_div_max_idle",
+            "importance": 0.0016490167235001466
+        },
+        {
+            "feature": "total_fiat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_fiat_div_std_idle",
+            "importance": 0.00020723197417845128
+        },
+        {
+            "feature": "total_biat_x_min_fiat",
+            "importance": 0.004230779148895968
+        },
+        {
+            "feature": "total_biat_div_min_fiat",
+            "importance": 0.005518150286891142
+        },
+        {
+            "feature": "total_biat_x_min_biat",
+            "importance": 0.009541006447050082
+        },
+        {
+            "feature": "total_biat_div_min_biat",
+            "importance": 0.009733940374806354
+        },
+        {
+            "feature": "total_biat_x_max_fiat",
+            "importance": 3.661790645998217e-05
+        },
+        {
+            "feature": "total_biat_div_max_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_x_max_biat",
+            "importance": 7.063979019079616e-05
+        },
+        {
+            "feature": "total_biat_div_max_biat",
+            "importance": 0.005643205741572771
+        },
+        {
+            "feature": "total_biat_x_mean_fiat",
+            "importance": 0.00035969008285890026
+        },
+        {
+            "feature": "total_biat_div_mean_fiat",
+            "importance": 5.198516528746373e-05
+        },
+        {
+            "feature": "total_biat_x_mean_biat",
+            "importance": 0.000510290448139718
+        },
+        {
+            "feature": "total_biat_div_mean_biat",
+            "importance": 0.004587457014846622
+        },
+        {
+            "feature": "total_biat_x_flowPktsPerSecond",
+            "importance": 0.00398270255185047
+        },
+        {
+            "feature": "total_biat_div_flowPktsPerSecond",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_x_flowBytesPerSecond",
+            "importance": 0.0011938591418651763
+        },
+        {
+            "feature": "total_biat_div_flowBytesPerSecond",
+            "importance": 0.00023065871209837496
+        },
+        {
+            "feature": "total_biat_x_min_flowiat",
+            "importance": 0.00707376627064841
+        },
+        {
+            "feature": "total_biat_div_min_flowiat",
+            "importance": 0.0003860530317349126
+        },
+        {
+            "feature": "total_biat_x_max_flowiat",
+            "importance": 9.63441222077023e-05
+        },
+        {
+            "feature": "total_biat_div_max_flowiat",
+            "importance": 0.0015580949216926487
+        },
+        {
+            "feature": "total_biat_x_mean_flowiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_div_mean_flowiat",
+            "importance": 0.001947715153288563
+        },
+        {
+            "feature": "total_biat_x_std_flowiat",
+            "importance": 6.0623488661903163e-05
+        },
+        {
+            "feature": "total_biat_div_std_flowiat",
+            "importance": 0.01572317683883519
+        },
+        {
+            "feature": "total_biat_x_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_div_min_active",
+            "importance": 0.0005341964488129748
+        },
+        {
+            "feature": "total_biat_x_mean_active",
+            "importance": 4.661273145941839e-05
+        },
+        {
+            "feature": "total_biat_div_mean_active",
+            "importance": 0.00505777299673596
+        },
+        {
+            "feature": "total_biat_x_max_active",
+            "importance": 1.889918658608097e-05
+        },
+        {
+            "feature": "total_biat_div_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_div_std_active",
+            "importance": 0.00021970495253219243
+        },
+        {
+            "feature": "total_biat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_div_min_idle",
+            "importance": 0.0016799769784699753
+        },
+        {
+            "feature": "total_biat_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_div_mean_idle",
+            "importance": 0.0023326227849144753
+        },
+        {
+            "feature": "total_biat_x_max_idle",
+            "importance": 0.00020994221156263312
+        },
+        {
+            "feature": "total_biat_div_max_idle",
+            "importance": 0.002452894962900275
+        },
+        {
+            "feature": "total_biat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "total_biat_div_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_fiat_x_min_biat",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_fiat_div_min_biat",
+            "importance": 0.0018613202347647045
+        },
+        {
+            "feature": "min_fiat_x_max_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_fiat_div_max_fiat",
+            "importance": 0.0013565702233163017
+        },
+        {
+            "feature": "min_fiat_x_max_biat",
+            "importance": 0.0007292333943216406
+        },
+        {
+            "feature": "min_fiat_div_max_biat",
+            "importance": 0.002331846859306097
+        },
+        {
+            "feature": "min_fiat_x_mean_fiat",
+            "importance": 0.000991727476070391
+        },
+        {
+            "feature": "min_fiat_div_mean_fiat",
+            "importance": 0.01698189180447012
+        },
+        {
+            "feature": "min_fiat_x_mean_biat",
+            "importance": 0.0014386610127985477
+        },
+        {
+            "feature": "min_fiat_div_mean_biat",
+            "importance": 0.00014054530420878815
+        },
+        {
+            "feature": "min_fiat_x_flowPktsPerSecond",
+            "importance": 0.0041145837507090685
+        },
+        {
+            "feature": "min_fiat_div_flowPktsPerSecond",
+            "importance": 0.0009413163988185165
+        },
+        {
+            "feature": "min_fiat_x_flowBytesPerSecond",
+            "importance": 0.00523904514883426
+        },
+        {
+            "feature": "min_fiat_div_flowBytesPerSecond",
+            "importance": 0.0005102426258448687
+        },
+        {
+            "feature": "min_fiat_x_min_flowiat",
+            "importance": 0.0015999416841727043
+        },
+        {
+            "feature": "min_fiat_div_min_flowiat",
+            "importance": 0.002412617657517111
+        },
+        {
+            "feature": "min_fiat_x_max_flowiat",
+            "importance": 0.0004601330806347366
+        },
+        {
+            "feature": "min_fiat_div_max_flowiat",
+            "importance": 0.004902575475847517
+        },
+        {
+            "feature": "min_fiat_x_mean_flowiat",
+            "importance": 0.0002583996917962262
+        },
+        {
+            "feature": "min_fiat_div_mean_flowiat",
+            "importance": 0.0065291792046511385
+        },
+        {
+            "feature": "min_fiat_x_std_flowiat",
+            "importance": 0.0010997240398809551
+        },
+        {
+            "feature": "min_fiat_div_std_flowiat",
+            "importance": 6.70829097102157e-05
+        },
+        {
+            "feature": "min_fiat_x_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_fiat_div_min_active",
+            "importance": 0.0066306587997037895
+        },
+        {
+            "feature": "min_fiat_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_fiat_div_mean_active",
+            "importance": 0.0023685693197712182
+        },
+        {
+            "feature": "min_fiat_x_max_active",
+            "importance": 0.0021384635474532843
+        },
+        {
+            "feature": "min_fiat_div_max_active",
+            "importance": 0.0007292411773292634
+        },
+        {
+            "feature": "min_fiat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_fiat_div_std_active",
+            "importance": 0.00428331048577048
+        },
+        {
+            "feature": "min_fiat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_fiat_div_min_idle",
+            "importance": 0.0007520888512985407
+        },
+        {
+            "feature": "min_fiat_x_mean_idle",
+            "importance": 0.00033436426502591855
+        },
+        {
+            "feature": "min_fiat_div_mean_idle",
+            "importance": 0.002019195769074753
+        },
+        {
+            "feature": "min_fiat_x_max_idle",
+            "importance": 0.0004500700719779842
+        },
+        {
+            "feature": "min_fiat_div_max_idle",
+            "importance": 0.0020444596601987197
+        },
+        {
+            "feature": "min_fiat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_fiat_div_std_idle",
+            "importance": 0.014592081560723735
+        },
+        {
+            "feature": "min_biat_x_max_fiat",
+            "importance": 1.6920103298925001e-06
+        },
+        {
+            "feature": "min_biat_div_max_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_biat_x_max_biat",
+            "importance": 7.326245787024629e-05
+        },
+        {
+            "feature": "min_biat_div_max_biat",
+            "importance": 0.0034427666989886425
+        },
+        {
+            "feature": "min_biat_x_mean_fiat",
+            "importance": 0.0008494715439155698
+        },
+        {
+            "feature": "min_biat_div_mean_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_biat_x_mean_biat",
+            "importance": 0.00039286500903665413
+        },
+        {
+            "feature": "min_biat_div_mean_biat",
+            "importance": 0.0024338823722705565
+        },
+        {
+            "feature": "min_biat_x_flowPktsPerSecond",
+            "importance": 0.002171689718711655
+        },
+        {
+            "feature": "min_biat_div_flowPktsPerSecond",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_biat_x_flowBytesPerSecond",
+            "importance": 0.005718810702108461
+        },
+        {
+            "feature": "min_biat_div_flowBytesPerSecond",
+            "importance": 0.00028664460007890986
+        },
+        {
+            "feature": "min_biat_x_min_flowiat",
+            "importance": 0.000424067144138132
+        },
+        {
+            "feature": "min_biat_div_min_flowiat",
+            "importance": 0.0019862886983901262
+        },
+        {
+            "feature": "min_biat_x_max_flowiat",
+            "importance": 0.000933077672813406
+        },
+        {
+            "feature": "min_biat_div_max_flowiat",
+            "importance": 0.010065193885429629
+        },
+        {
+            "feature": "min_biat_x_mean_flowiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_biat_div_mean_flowiat",
+            "importance": 0.006502090802954624
+        },
+        {
+            "feature": "min_biat_x_std_flowiat",
+            "importance": 0.0009682970533269014
+        },
+        {
+            "feature": "min_biat_div_std_flowiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_biat_x_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_biat_div_min_active",
+            "importance": 0.00030390543754488806
+        },
+        {
+            "feature": "min_biat_x_mean_active",
+            "importance": 0.0006227799865656381
+        },
+        {
+            "feature": "min_biat_div_mean_active",
+            "importance": 0.001141114145160471
+        },
+        {
+            "feature": "min_biat_x_max_active",
+            "importance": 0.0012069916997364748
+        },
+        {
+            "feature": "min_biat_div_max_active",
+            "importance": 0.001572935450938397
+        },
+        {
+            "feature": "min_biat_x_std_active",
+            "importance": 0.0006396355135235815
+        },
+        {
+            "feature": "min_biat_div_std_active",
+            "importance": 0.001032218939086405
+        },
+        {
+            "feature": "min_biat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_biat_div_min_idle",
+            "importance": 0.0010660414702968611
+        },
+        {
+            "feature": "min_biat_x_mean_idle",
+            "importance": 0.0008451836066022996
+        },
+        {
+            "feature": "min_biat_div_mean_idle",
+            "importance": 0.0012963133168939931
+        },
+        {
+            "feature": "min_biat_x_max_idle",
+            "importance": 0.0010250289613309106
+        },
+        {
+            "feature": "min_biat_div_max_idle",
+            "importance": 0.0008547451675281387
+        },
+        {
+            "feature": "min_biat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_biat_div_std_idle",
+            "importance": 0.0022399708846174067
+        },
+        {
+            "feature": "max_fiat_x_max_biat",
+            "importance": 0.002842063065431451
+        },
+        {
+            "feature": "max_fiat_div_max_biat",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_x_mean_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_div_mean_fiat",
+            "importance": 0.006207908612653386
+        },
+        {
+            "feature": "max_fiat_x_mean_biat",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_div_mean_biat",
+            "importance": 2.066251944364858e-05
+        },
+        {
+            "feature": "max_fiat_x_flowPktsPerSecond",
+            "importance": 0.001915092298339486
+        },
+        {
+            "feature": "max_fiat_div_flowPktsPerSecond",
+            "importance": 0.000811198466372059
+        },
+        {
+            "feature": "max_fiat_x_flowBytesPerSecond",
+            "importance": 0.0012510251675276027
+        },
+        {
+            "feature": "max_fiat_div_flowBytesPerSecond",
+            "importance": 0.0012455488124655987
+        },
+        {
+            "feature": "max_fiat_x_min_flowiat",
+            "importance": 0.0010325008561152774
+        },
+        {
+            "feature": "max_fiat_div_min_flowiat",
+            "importance": 0.00033480428504602326
+        },
+        {
+            "feature": "max_fiat_x_max_flowiat",
+            "importance": 0.016127404004127915
+        },
+        {
+            "feature": "max_fiat_div_max_flowiat",
+            "importance": 0.004445404095692485
+        },
+        {
+            "feature": "max_fiat_x_mean_flowiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_div_mean_flowiat",
+            "importance": 0.0003130117204992261
+        },
+        {
+            "feature": "max_fiat_x_std_flowiat",
+            "importance": 0.0015022670321659382
+        },
+        {
+            "feature": "max_fiat_div_std_flowiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_x_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_div_min_active",
+            "importance": 0.0064698574133217335
+        },
+        {
+            "feature": "max_fiat_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_div_mean_active",
+            "importance": 0.002028700354603249
+        },
+        {
+            "feature": "max_fiat_x_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_div_max_active",
+            "importance": 0.0006526043823093747
+        },
+        {
+            "feature": "max_fiat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_div_std_active",
+            "importance": 0.004012212985018299
+        },
+        {
+            "feature": "max_fiat_x_min_idle",
+            "importance": 7.202967829738899e-06
+        },
+        {
+            "feature": "max_fiat_div_min_idle",
+            "importance": 4.3813684835678504e-05
+        },
+        {
+            "feature": "max_fiat_x_mean_idle",
+            "importance": 0.0005530635556260943
+        },
+        {
+            "feature": "max_fiat_div_mean_idle",
+            "importance": 0.0019511049126759556
+        },
+        {
+            "feature": "max_fiat_x_max_idle",
+            "importance": 0.002232010197038606
+        },
+        {
+            "feature": "max_fiat_div_max_idle",
+            "importance": 0.0007683564840803027
+        },
+        {
+            "feature": "max_fiat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_fiat_div_std_idle",
+            "importance": 0.0022628454329065655
+        },
+        {
+            "feature": "max_biat_x_mean_fiat",
+            "importance": 0.0013780610049044684
+        },
+        {
+            "feature": "max_biat_div_mean_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_biat_x_mean_biat",
+            "importance": 0.0006035017023953222
+        },
+        {
+            "feature": "max_biat_div_mean_biat",
+            "importance": 0.006704100873321295
+        },
+        {
+            "feature": "max_biat_x_flowPktsPerSecond",
+            "importance": 0.00145165836583064
+        },
+        {
+            "feature": "max_biat_div_flowPktsPerSecond",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_biat_x_flowBytesPerSecond",
+            "importance": 0.0036208481193647805
+        },
+        {
+            "feature": "max_biat_div_flowBytesPerSecond",
+            "importance": 0.0013126164406997202
+        },
+        {
+            "feature": "max_biat_x_min_flowiat",
+            "importance": 0.0008105436416059898
+        },
+        {
+            "feature": "max_biat_div_min_flowiat",
+            "importance": 0.0038193287327885628
+        },
+        {
+            "feature": "max_biat_x_max_flowiat",
+            "importance": 0.00025986816672649433
+        },
+        {
+            "feature": "max_biat_div_max_flowiat",
+            "importance": 0.00273284930831226
+        },
+        {
+            "feature": "max_biat_x_mean_flowiat",
+            "importance": 2.5978775631410523e-05
+        },
+        {
+            "feature": "max_biat_div_mean_flowiat",
+            "importance": 0.0007647549769170834
+        },
+        {
+            "feature": "max_biat_x_std_flowiat",
+            "importance": 0.0012096280675160738
+        },
+        {
+            "feature": "max_biat_div_std_flowiat",
+            "importance": 0.005771203308620939
+        },
+        {
+            "feature": "max_biat_x_min_active",
+            "importance": 2.4678536018167813e-05
+        },
+        {
+            "feature": "max_biat_div_min_active",
+            "importance": 0.0005881740520308474
+        },
+        {
+            "feature": "max_biat_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_biat_div_mean_active",
+            "importance": 6.424871479713641e-05
+        },
+        {
+            "feature": "max_biat_x_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_biat_div_max_active",
+            "importance": 0.00014147381418595488
+        },
+        {
+            "feature": "max_biat_x_std_active",
+            "importance": 0.002854699734598398
+        },
+        {
+            "feature": "max_biat_div_std_active",
+            "importance": 0.0005887245518661896
+        },
+        {
+            "feature": "max_biat_x_min_idle",
+            "importance": 1.9692994399321163e-05
+        },
+        {
+            "feature": "max_biat_div_min_idle",
+            "importance": 9.10614125167033e-05
+        },
+        {
+            "feature": "max_biat_x_mean_idle",
+            "importance": 0.00015533390812360627
+        },
+        {
+            "feature": "max_biat_div_mean_idle",
+            "importance": 0.0013287432252144641
+        },
+        {
+            "feature": "max_biat_x_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_biat_div_max_idle",
+            "importance": 0.00014509986898834104
+        },
+        {
+            "feature": "max_biat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_biat_div_std_idle",
+            "importance": 1.7768566916049408e-06
+        },
+        {
+            "feature": "mean_fiat_x_mean_biat",
+            "importance": 0.0088720972807928
+        },
+        {
+            "feature": "mean_fiat_div_mean_biat",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_fiat_x_flowPktsPerSecond",
+            "importance": 0.002677417658458459
+        },
+        {
+            "feature": "mean_fiat_div_flowPktsPerSecond",
+            "importance": 0.001424090367398388
+        },
+        {
+            "feature": "mean_fiat_x_flowBytesPerSecond",
+            "importance": 0.005449489516792956
+        },
+        {
+            "feature": "mean_fiat_div_flowBytesPerSecond",
+            "importance": 0.007091135871792421
+        },
+        {
+            "feature": "mean_fiat_x_min_flowiat",
+            "importance": 0.0007200232889859009
+        },
+        {
+            "feature": "mean_fiat_div_min_flowiat",
+            "importance": 0.0017687867546713042
+        },
+        {
+            "feature": "mean_fiat_x_max_flowiat",
+            "importance": 0.0006824894042113235
+        },
+        {
+            "feature": "mean_fiat_div_max_flowiat",
+            "importance": 0.00021181344413759282
+        },
+        {
+            "feature": "mean_fiat_x_mean_flowiat",
+            "importance": 0.00025607664011071486
+        },
+        {
+            "feature": "mean_fiat_div_mean_flowiat",
+            "importance": 0.00468320999222516
+        },
+        {
+            "feature": "mean_fiat_x_std_flowiat",
+            "importance": 0.005420318339020014
+        },
+        {
+            "feature": "mean_fiat_div_std_flowiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_fiat_x_min_active",
+            "importance": 0.0001964781772186498
+        },
+        {
+            "feature": "mean_fiat_div_min_active",
+            "importance": 0.006280022291840502
+        },
+        {
+            "feature": "mean_fiat_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_fiat_div_mean_active",
+            "importance": 0.0029267596573338906
+        },
+        {
+            "feature": "mean_fiat_x_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_fiat_div_max_active",
+            "importance": 0.0013240386868812134
+        },
+        {
+            "feature": "mean_fiat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_fiat_div_std_active",
+            "importance": 0.003814102945062214
+        },
+        {
+            "feature": "mean_fiat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_fiat_div_min_idle",
+            "importance": 0.0036174170981692856
+        },
+        {
+            "feature": "mean_fiat_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_fiat_div_mean_idle",
+            "importance": 0.002953725095910696
+        },
+        {
+            "feature": "mean_fiat_x_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_fiat_div_max_idle",
+            "importance": 0.0019869360479832228
+        },
+        {
+            "feature": "mean_fiat_x_std_idle",
+            "importance": 0.00015449973984965718
+        },
+        {
+            "feature": "mean_fiat_div_std_idle",
+            "importance": 0.0007739597557697736
+        },
+        {
+            "feature": "mean_biat_x_flowPktsPerSecond",
+            "importance": 0.0035107044084131513
+        },
+        {
+            "feature": "mean_biat_div_flowPktsPerSecond",
+            "importance": 0.001565933854829498
+        },
+        {
+            "feature": "mean_biat_x_flowBytesPerSecond",
+            "importance": 0.009109668637888963
+        },
+        {
+            "feature": "mean_biat_div_flowBytesPerSecond",
+            "importance": 0.012682319165614405
+        },
+        {
+            "feature": "mean_biat_x_min_flowiat",
+            "importance": 0.002108364947104304
+        },
+        {
+            "feature": "mean_biat_div_min_flowiat",
+            "importance": 0.0004649542925395867
+        },
+        {
+            "feature": "mean_biat_x_max_flowiat",
+            "importance": 0.013890495353911464
+        },
+        {
+            "feature": "mean_biat_div_max_flowiat",
+            "importance": 0.00022306316125210177
+        },
+        {
+            "feature": "mean_biat_x_mean_flowiat",
+            "importance": 0.001093423495034901
+        },
+        {
+            "feature": "mean_biat_div_mean_flowiat",
+            "importance": 0.004845614630362624
+        },
+        {
+            "feature": "mean_biat_x_std_flowiat",
+            "importance": 0.0009006949416543981
+        },
+        {
+            "feature": "mean_biat_div_std_flowiat",
+            "importance": 0.00031646216131810985
+        },
+        {
+            "feature": "mean_biat_x_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_biat_div_min_active",
+            "importance": 0.009992462923617053
+        },
+        {
+            "feature": "mean_biat_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_biat_div_mean_active",
+            "importance": 0.003557823064845095
+        },
+        {
+            "feature": "mean_biat_x_max_active",
+            "importance": 0.00011938497277068335
+        },
+        {
+            "feature": "mean_biat_div_max_active",
+            "importance": 0.0022625884960106655
+        },
+        {
+            "feature": "mean_biat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_biat_div_std_active",
+            "importance": 0.005144165883407127
+        },
+        {
+            "feature": "mean_biat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_biat_div_min_idle",
+            "importance": 0.0026586058325878893
+        },
+        {
+            "feature": "mean_biat_x_mean_idle",
+            "importance": 0.00018829259996555156
+        },
+        {
+            "feature": "mean_biat_div_mean_idle",
+            "importance": 0.0037746134496162357
+        },
+        {
+            "feature": "mean_biat_x_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_biat_div_max_idle",
+            "importance": 0.002104880747124893
+        },
+        {
+            "feature": "mean_biat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_biat_div_std_idle",
+            "importance": 0.005155740386560038
+        },
+        {
+            "feature": "flowPktsPerSecond_x_flowBytesPerSecond",
+            "importance": 0.0020388588663486722
+        },
+        {
+            "feature": "flowPktsPerSecond_div_flowBytesPerSecond",
+            "importance": 0.017617672406145528
+        },
+        {
+            "feature": "flowPktsPerSecond_x_min_flowiat",
+            "importance": 0.0006423846140343664
+        },
+        {
+            "feature": "flowPktsPerSecond_div_min_flowiat",
+            "importance": 0.0005059771676807167
+        },
+        {
+            "feature": "flowPktsPerSecond_x_max_flowiat",
+            "importance": 0.007923353513143005
+        },
+        {
+            "feature": "flowPktsPerSecond_div_max_flowiat",
+            "importance": 0.006521892734492658
+        },
+        {
+            "feature": "flowPktsPerSecond_x_mean_flowiat",
+            "importance": 0.007286682784329684
+        },
+        {
+            "feature": "flowPktsPerSecond_div_mean_flowiat",
+            "importance": 0.007382462969002072
+        },
+        {
+            "feature": "flowPktsPerSecond_x_std_flowiat",
+            "importance": 0.006343138374791997
+        },
+        {
+            "feature": "flowPktsPerSecond_div_std_flowiat",
+            "importance": 0.0007808890020573942
+        },
+        {
+            "feature": "flowPktsPerSecond_x_min_active",
+            "importance": 0.00028327102602991805
+        },
+        {
+            "feature": "flowPktsPerSecond_div_min_active",
+            "importance": 0.001485186938847139
+        },
+        {
+            "feature": "flowPktsPerSecond_x_mean_active",
+            "importance": 0.0008032480659772739
+        },
+        {
+            "feature": "flowPktsPerSecond_div_mean_active",
+            "importance": 0.0020303872763361426
+        },
+        {
+            "feature": "flowPktsPerSecond_x_max_active",
+            "importance": 0.0013090709787862494
+        },
+        {
+            "feature": "flowPktsPerSecond_div_max_active",
+            "importance": 0.0010607626958191426
+        },
+        {
+            "feature": "flowPktsPerSecond_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "flowPktsPerSecond_div_std_active",
+            "importance": 0.009381489595604808
+        },
+        {
+            "feature": "flowPktsPerSecond_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "flowPktsPerSecond_div_min_idle",
+            "importance": 0.0026479374935597035
+        },
+        {
+            "feature": "flowPktsPerSecond_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "flowPktsPerSecond_div_mean_idle",
+            "importance": 0.0013790242512861255
+        },
+        {
+            "feature": "flowPktsPerSecond_x_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "flowPktsPerSecond_div_max_idle",
+            "importance": 0.002112620471383123
+        },
+        {
+            "feature": "flowPktsPerSecond_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "flowPktsPerSecond_div_std_idle",
+            "importance": 0.0038222910897738253
+        },
+        {
+            "feature": "flowBytesPerSecond_x_min_flowiat",
+            "importance": 0.007887675914603182
+        },
+        {
+            "feature": "flowBytesPerSecond_div_min_flowiat",
+            "importance": 0.004876437689951315
+        },
+        {
+            "feature": "flowBytesPerSecond_x_max_flowiat",
+            "importance": 0.015651512526737046
+        },
+        {
+            "feature": "flowBytesPerSecond_div_max_flowiat",
+            "importance": 0.005845186259416443
+        },
+        {
+            "feature": "flowBytesPerSecond_x_mean_flowiat",
+            "importance": 0.019483189176201312
+        },
+        {
+            "feature": "flowBytesPerSecond_div_mean_flowiat",
+            "importance": 0.006542942055689769
+        },
+        {
+            "feature": "flowBytesPerSecond_x_std_flowiat",
+            "importance": 0.011348408763090604
+        },
+        {
+            "feature": "flowBytesPerSecond_div_std_flowiat",
+            "importance": 0.00028839783351517867
+        },
+        {
+            "feature": "flowBytesPerSecond_x_min_active",
+            "importance": 0.0003810426078226635
+        },
+        {
+            "feature": "flowBytesPerSecond_div_min_active",
+            "importance": 0.004964641281243054
+        },
+        {
+            "feature": "flowBytesPerSecond_x_mean_active",
+            "importance": 0.0020099594155595837
+        },
+        {
+            "feature": "flowBytesPerSecond_div_mean_active",
+            "importance": 0.0008419530803104387
+        },
+        {
+            "feature": "flowBytesPerSecond_x_max_active",
+            "importance": 0.00014809876608956214
+        },
+        {
+            "feature": "flowBytesPerSecond_div_max_active",
+            "importance": 0.001957710639751628
+        },
+        {
+            "feature": "flowBytesPerSecond_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "flowBytesPerSecond_div_std_active",
+            "importance": 0.0007637734635796095
+        },
+        {
+            "feature": "flowBytesPerSecond_x_min_idle",
+            "importance": 0.0011420084437110307
+        },
+        {
+            "feature": "flowBytesPerSecond_div_min_idle",
+            "importance": 0.0004940355890326477
+        },
+        {
+            "feature": "flowBytesPerSecond_x_mean_idle",
+            "importance": 0.0014982297589596029
+        },
+        {
+            "feature": "flowBytesPerSecond_div_mean_idle",
+            "importance": 0.0004118412390548532
+        },
+        {
+            "feature": "flowBytesPerSecond_x_max_idle",
+            "importance": 0.0024636539372101664
+        },
+        {
+            "feature": "flowBytesPerSecond_div_max_idle",
+            "importance": 0.00135905740058463
+        },
+        {
+            "feature": "flowBytesPerSecond_x_std_idle",
+            "importance": 8.287380069166448e-05
+        },
+        {
+            "feature": "flowBytesPerSecond_div_std_idle",
+            "importance": 0.0019637016755587513
+        },
+        {
+            "feature": "min_flowiat_x_max_flowiat",
+            "importance": 0.001290621425158055
+        },
+        {
+            "feature": "min_flowiat_div_max_flowiat",
+            "importance": 0.000357510098409524
+        },
+        {
+            "feature": "min_flowiat_x_mean_flowiat",
+            "importance": 0.0012459234626626108
+        },
+        {
+            "feature": "min_flowiat_div_mean_flowiat",
+            "importance": 2.1221344880902695e-05
+        },
+        {
+            "feature": "min_flowiat_x_std_flowiat",
+            "importance": 0.0007024523802101612
+        },
+        {
+            "feature": "min_flowiat_div_std_flowiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_flowiat_x_min_active",
+            "importance": 8.304366535139225e-05
+        },
+        {
+            "feature": "min_flowiat_div_min_active",
+            "importance": 0.003885033621275861
+        },
+        {
+            "feature": "min_flowiat_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_flowiat_div_mean_active",
+            "importance": 0.00013429059221806838
+        },
+        {
+            "feature": "min_flowiat_x_max_active",
+            "importance": 9.788229363039136e-05
+        },
+        {
+            "feature": "min_flowiat_div_max_active",
+            "importance": 0.0011512346957674522
+        },
+        {
+            "feature": "min_flowiat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_flowiat_div_std_active",
+            "importance": 0.005749335504987205
+        },
+        {
+            "feature": "min_flowiat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_flowiat_div_min_idle",
+            "importance": 0.0016712448126276983
+        },
+        {
+            "feature": "min_flowiat_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_flowiat_div_mean_idle",
+            "importance": 0.0012792631824447979
+        },
+        {
+            "feature": "min_flowiat_x_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_flowiat_div_max_idle",
+            "importance": 0.0003723031598073566
+        },
+        {
+            "feature": "min_flowiat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_flowiat_div_std_idle",
+            "importance": 0.0016157384534482187
+        },
+        {
+            "feature": "max_flowiat_x_mean_flowiat",
+            "importance": 0.0008933335863685339
+        },
+        {
+            "feature": "max_flowiat_div_mean_flowiat",
+            "importance": 0.000790247134579699
+        },
+        {
+            "feature": "max_flowiat_x_std_flowiat",
+            "importance": 0.021705293005815945
+        },
+        {
+            "feature": "max_flowiat_div_std_flowiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_flowiat_x_min_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_flowiat_div_min_active",
+            "importance": 0.00827402297192165
+        },
+        {
+            "feature": "max_flowiat_x_mean_active",
+            "importance": 0.0012202558668122302
+        },
+        {
+            "feature": "max_flowiat_div_mean_active",
+            "importance": 0.002724726771978398
+        },
+        {
+            "feature": "max_flowiat_x_max_active",
+            "importance": 0.001262758859449355
+        },
+        {
+            "feature": "max_flowiat_div_max_active",
+            "importance": 0.002075655909012635
+        },
+        {
+            "feature": "max_flowiat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_flowiat_div_std_active",
+            "importance": 0.0037665193078925095
+        },
+        {
+            "feature": "max_flowiat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_flowiat_div_min_idle",
+            "importance": 0.0013969391480649126
+        },
+        {
+            "feature": "max_flowiat_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_flowiat_div_mean_idle",
+            "importance": 0.0017375557451623322
+        },
+        {
+            "feature": "max_flowiat_x_max_idle",
+            "importance": 0.0015742637140131795
+        },
+        {
+            "feature": "max_flowiat_div_max_idle",
+            "importance": 0.0037282196548322107
+        },
+        {
+            "feature": "max_flowiat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_flowiat_div_std_idle",
+            "importance": 0.0006967591256400896
+        },
+        {
+            "feature": "mean_flowiat_x_std_flowiat",
+            "importance": 0.006829081396208862
+        },
+        {
+            "feature": "mean_flowiat_div_std_flowiat",
+            "importance": 0.0003637116771313427
+        },
+        {
+            "feature": "mean_flowiat_x_min_active",
+            "importance": 0.0001440562964920138
+        },
+        {
+            "feature": "mean_flowiat_div_min_active",
+            "importance": 0.007150051808762244
+        },
+        {
+            "feature": "mean_flowiat_x_mean_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_flowiat_div_mean_active",
+            "importance": 0.0013548490465996393
+        },
+        {
+            "feature": "mean_flowiat_x_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_flowiat_div_max_active",
+            "importance": 0.0017088752631110652
+        },
+        {
+            "feature": "mean_flowiat_x_std_active",
+            "importance": 0.00033666527235214994
+        },
+        {
+            "feature": "mean_flowiat_div_std_active",
+            "importance": 0.0007893551822431076
+        },
+        {
+            "feature": "mean_flowiat_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_flowiat_div_min_idle",
+            "importance": 0.0008659907999891703
+        },
+        {
+            "feature": "mean_flowiat_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_flowiat_div_mean_idle",
+            "importance": 0.0026021629079064435
+        },
+        {
+            "feature": "mean_flowiat_x_max_idle",
+            "importance": 0.000166346854812458
+        },
+        {
+            "feature": "mean_flowiat_div_max_idle",
+            "importance": 0.004677591297357885
+        },
+        {
+            "feature": "mean_flowiat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_flowiat_div_std_idle",
+            "importance": 0.0005893120772537279
+        },
+        {
+            "feature": "std_flowiat_x_min_active",
+            "importance": 0.0004109303408768028
+        },
+        {
+            "feature": "std_flowiat_div_min_active",
+            "importance": 0.014560094171100496
+        },
+        {
+            "feature": "std_flowiat_x_mean_active",
+            "importance": 6.570179896371128e-05
+        },
+        {
+            "feature": "std_flowiat_div_mean_active",
+            "importance": 0.004301153665262988
+        },
+        {
+            "feature": "std_flowiat_x_max_active",
+            "importance": 0.0010955792322389383
+        },
+        {
+            "feature": "std_flowiat_div_max_active",
+            "importance": 0.0015372518266514423
+        },
+        {
+            "feature": "std_flowiat_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_flowiat_div_std_active",
+            "importance": 0.006332681028916135
+        },
+        {
+            "feature": "std_flowiat_x_min_idle",
+            "importance": 0.00046057747633101173
+        },
+        {
+            "feature": "std_flowiat_div_min_idle",
+            "importance": 0.00295323978283428
+        },
+        {
+            "feature": "std_flowiat_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_flowiat_div_mean_idle",
+            "importance": 0.0033020356047013012
+        },
+        {
+            "feature": "std_flowiat_x_max_idle",
+            "importance": 9.90285501816021e-05
+        },
+        {
+            "feature": "std_flowiat_div_max_idle",
+            "importance": 0.0021538512020299726
+        },
+        {
+            "feature": "std_flowiat_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_flowiat_div_std_idle",
+            "importance": 0.0005822622694491417
+        },
+        {
+            "feature": "min_active_x_mean_active",
+            "importance": 0.0003069827184508338
+        },
+        {
+            "feature": "min_active_div_mean_active",
+            "importance": 0.0016438732087036862
+        },
+        {
+            "feature": "min_active_x_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_active_div_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_active_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_active_div_std_active",
+            "importance": 0.0003864956783061022
+        },
+        {
+            "feature": "min_active_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_active_div_min_idle",
+            "importance": 0.0038567994455513746
+        },
+        {
+            "feature": "min_active_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_active_div_mean_idle",
+            "importance": 4.0712545054103555e-05
+        },
+        {
+            "feature": "min_active_x_max_idle",
+            "importance": 0.0004492165959457419
+        },
+        {
+            "feature": "min_active_div_max_idle",
+            "importance": 0.0005218547895416955
+        },
+        {
+            "feature": "min_active_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_active_div_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active_x_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active_div_max_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active_x_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active_div_std_active",
+            "importance": 7.35045864502639e-05
+        },
+        {
+            "feature": "mean_active_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active_div_min_idle",
+            "importance": 0.0007229432212189307
+        },
+        {
+            "feature": "mean_active_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active_div_mean_idle",
+            "importance": 0.0030323593811861943
+        },
+        {
+            "feature": "mean_active_x_max_idle",
+            "importance": 0.0005342609238197963
+        },
+        {
+            "feature": "mean_active_div_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_active_div_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_active_x_std_active",
+            "importance": 0.00020135505950876468
+        },
+        {
+            "feature": "max_active_div_std_active",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_active_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_active_div_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_active_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_active_div_mean_idle",
+            "importance": 8.28995662466553e-05
+        },
+        {
+            "feature": "max_active_x_max_idle",
+            "importance": 0.000519989859105971
+        },
+        {
+            "feature": "max_active_div_max_idle",
+            "importance": 0.0025302014248437263
+        },
+        {
+            "feature": "max_active_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_active_div_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_active_x_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_active_div_min_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_active_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_active_div_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_active_x_max_idle",
+            "importance": 0.000346533838803923
+        },
+        {
+            "feature": "std_active_div_max_idle",
+            "importance": 0.0002600060861813386
+        },
+        {
+            "feature": "std_active_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "std_active_div_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_idle_x_mean_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_idle_div_mean_idle",
+            "importance": 0.00035887741250917315
+        },
+        {
+            "feature": "min_idle_x_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_idle_div_max_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_idle_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "min_idle_div_std_idle",
+            "importance": 0.0004767066806377228
+        },
+        {
+            "feature": "mean_idle_x_max_idle",
+            "importance": 0.00034961449747575736
+        },
+        {
+            "feature": "mean_idle_div_max_idle",
+            "importance": 0.000255964565746644
+        },
+        {
+            "feature": "mean_idle_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_idle_div_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_idle_x_std_idle",
+            "importance": 0.0
+        },
+        {
+            "feature": "max_idle_div_std_idle",
+            "importance": 0.0
+        }
+    ]
+}

@@ -1,0 +1,102 @@
+{
+    "timestamp": "2026-04-19 09:15:28",
+    "model_name": "RF_CONSERVATIVE",
+    "run_name": "RF_CONSERVATIVE_default",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.7206900401965163,
+        "precision": 0.6892569805963086,
+        "recall": 0.8089313485892023,
+        "f1_score": 0.7443144069095927
+    },
+    "feature_importance_full": [
+        {
+            "feature": "total_fiat",
+            "importance": 0.02434338028500209
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.027745150886846467
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.08009369035938377
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.09429604427612163
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.0614330196820744
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.03771043534414093
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.05144224614286512
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.04807914852637826
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.08914389621734872
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.050435116207112295
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.11134113810263954
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.11012058620705932
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.07540899889809934
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.052081372074824626
+        },
+        {
+            "feature": "min_active",
+            "importance": 0.008903205296356612
+        },
+        {
+            "feature": "mean_active",
+            "importance": 0.011409574877929296
+        },
+        {
+            "feature": "max_active",
+            "importance": 0.016856491949094173
+        },
+        {
+            "feature": "std_active",
+            "importance": 0.0021159464174388735
+        },
+        {
+            "feature": "min_idle",
+            "importance": 0.00845209283681951
+        },
+        {
+            "feature": "mean_idle",
+            "importance": 0.013391900072495517
+        },
+        {
+            "feature": "max_idle",
+            "importance": 0.022768935436646494
+        },
+        {
+            "feature": "std_idle",
+            "importance": 0.002427629903323137
+        }
+    ]
+}

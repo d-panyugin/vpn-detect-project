@@ -23,7 +23,12 @@ MODEL_LABELS = {
     "xgb": "XGBoost (Рекомендуемый)",
     "stacking": "Stacking (XGBoost + RandomForest + LogisticRegression -> LogisticRegression)",
     "stacking_upgraded" : "StackingClassifier(XGB + ExtraTreesClassifier + LogisticRegression -> XGB)",
-    "xgb_conservative" : "XGB с большим штрафом за FP"
+    "xgb_conservative" : "XGB с большим штрафом за FP",
+    "xgb_ultra_conservative": "XGB Ultra-Conservative (L1/L2 параноик)",
+    "lr_conservative": "LR Conservative (L1-регуляризация, отбор фичей)",
+    "rf_conservative": "RF Conservative (Мелкие деревья, min_samples)",
+    "gb_conservative": "GB Conservative (Пни, медленный шаг)",
+    "stacking_conservative": "Stacking Conservative (Ансамбль параноиков)"
 }
 
 PROFILE_LABELS = {
