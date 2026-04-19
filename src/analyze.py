@@ -282,7 +282,6 @@ with tab_comparison:
                             plt.close(fig)
                         except Exception as e:
                             st.error(f"SHAP generation failed: {e}")
-
 # ======================== #
 # TAB 3: RESEARCH LAB      #
 # ======================== #
@@ -312,15 +311,20 @@ with tab_research:
             model_upper = model_name.upper()
             if 'XGB' in model_upper: return 'XGBoost'
             if 'STACK' in model_upper: return 'Стекинг'
+            # BAG проверяется ДО GB, чтобы bag_dt не попал в Gradient Boosting
+            if 'BAG' in model_upper or 'RF' in model_upper or 'DT' in model_upper: return 'Деревья и Бэггинг'
             if 'GB' in model_upper: return 'Gradient Boosting'
             if 'LR' in model_upper: return 'Линейные (LR)'
-            if 'RF' in model_upper or 'DT' in model_upper or 'BAG' in model_upper: return 'Деревья (RF/DT)'
             return model_name
 
         df_hist['Model_Family'] = df_hist['Model'].apply(get_model_family)
-        df_hist['Utopia_Dist'] = np.sqrt((1 - df_hist['precision'])**2 + (1 - df_hist['recall'])**2)
-
         df_hist_no_lr = df_hist[df_hist['Model_Family'] != 'Линейные (LR)'].copy()
+
+        # Маппинг фигур и цветов
+        family_shapes = {'XGBoost': 'circle', 'Стекинг': 'star', 'Gradient Boosting': 'square', 'Деревья и Бэггинг': 'diamond'}
+        family_colors_sparse = {'XGBoost': '#636EFA', 'Стекинг': '#FF6692', 'Gradient Boosting': '#FFA15A', 'Деревья и Бэггинг': '#B6E880'}
+        profiles = df_hist_no_lr['Profile'].unique().tolist()
+        profile_colors = px.colors.qualitative.Plotly
 
         def render_tall_chart(fig, height=700, width=800):
             fig.update_layout(height=height, width=width)
@@ -328,127 +332,363 @@ with tab_research:
             with col2: st.plotly_chart(fig, use_container_width=False)
 
         # ========================================== #
-        # ГРАФИК 1: Архитектура vs Данные (F1)
+        # ГРАФИК 1: Архитектура vs Данные
         # ========================================== #
         st.subheader("Доказательство тезиса: Архитектура первична, данные вторичны")
-        st.caption("Каждая точка — запуск с профилем препроцессинга. Компактный кластер = модель игнорирует шум в данных.")
+        st.caption("Форма — семейство алгоритмов. Цвет — профиль препроцессинга. Пунктирная линия разделяет стандартные (справа) и консервативные (слева) архитектуры.")
 
         families = df_hist_no_lr['Model_Family'].unique().tolist()
         family_to_num = {f: i for i, f in enumerate(families)}
         np.random.seed(42)
-        df_hist_no_lr['x_jitter'] = df_hist_no_lr['Model_Family'].map(family_to_num) + np.random.uniform(-0.3, 0.3, len(df_hist_no_lr))
+        
+        # Разделение джиттера: стандартные вправо, консервативные влево
+        def get_jitter(row):
+            x_num = family_to_num[row['Model_Family']]
+            if 'conservative' in row['Model'].lower():
+                return x_num - np.random.uniform(0.05, 0.3)
+            else:
+                return x_num + np.random.uniform(0.05, 0.3)
+                
+        df_hist_no_lr['x_jitter'] = df_hist_no_lr.apply(get_jitter, axis=1)
 
-        fig_f1 = px.scatter(df_hist_no_lr, x="x_jitter", y="f1_score", color="Profile", hover_data=["Run", "Model"])
+        if len(df_hist_no_lr) >= 3:
+            dbscan_arch = DBSCAN(eps=0.15, min_samples=2)
+            df_hist_no_lr['Cluster_Arch'] = dbscan_arch.fit_predict(df_hist_no_lr[['x_jitter', 'f1_score']])
+        else:
+            df_hist_no_lr['Cluster_Arch'] = -1
+
+        fig_f1 = go.Figure()
+
+        # 1. Боксы (фоном) и Разделительные линии
         for family, x_num in family_to_num.items():
             family_data = df_hist_no_lr[df_hist_no_lr['Model_Family'] == family]['f1_score']
             fig_f1.add_trace(go.Box(
                 y=family_data, x=[x_num]*len(family_data),
-                marker_color='rgba(200,200,200,0.3)', line_color='rgba(50,50,50,0.8)', fillcolor='rgba(200,200,200,0.2)',
+                marker_color='rgba(220,220,220,0.3)', line_color='rgba(150,150,150,0.5)', fillcolor='rgba(220,220,220,0.2)',
                 showlegend=False, boxpoints=False, name=family
             ))
-        fig_f1.update_traces(marker=dict(size=8, opacity=0.8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(type='scatter'))
-        fig_f1.update_xaxes(tickvals=list(family_to_num.values()), ticktext=list(family_to_num.keys()), title_text="Семейство алгоритмов")
+            # Линия разделитель
+            fig_f1.add_vline(x=x_num, line_width=1, line_dash="dash", line_color="rgba(150,0,0,0.5)")
+            fig_f1.add_annotation(x=x_num-0.15, y=df_hist_no_lr['f1_score'].min()-0.01, text="Конс.", font=dict(size=8, color="red"), showarrow=False)
+            fig_f1.add_annotation(x=x_num+0.15, y=df_hist_no_lr['f1_score'].min()-0.01, text="Станд.", font=dict(size=8, color="blue"), showarrow=False)
+
+        # 2. Кластеры (пунктирные контуры)
+        cluster_colors_list = px.colors.qualitative.Plotly
+        clusters = df_hist_no_lr[df_hist_no_lr['Cluster_Arch'] != -1]
+        for c_id in clusters['Cluster_Arch'].unique():
+            c_df = clusters[clusters['Cluster_Arch'] == c_id]
+            if len(c_df) < 3: continue
+            
+            points = c_df[['x_jitter', 'f1_score']].values
+            try:
+                hull = ConvexHull(points)
+                hull_points = points[hull.vertices].tolist()
+                hull_points.append(hull_points[0])
+                x_hull, y_hull = zip(*hull_points)
+                
+                color_idx = int(c_id) % len(cluster_colors_list)
+                rgb = px.colors.hex_to_rgb(cluster_colors_list[color_idx])
+                fillcolor = f'rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.05)'
+                
+                fig_f1.add_trace(go.Scatter(
+                    x=x_hull, y=y_hull, fill='toself',
+                    fillcolor=fillcolor,
+                    line=dict(color=cluster_colors_list[color_idx], width=2, dash='dot'),
+                    name=f'Кластер {c_id}', hoverinfo='skip', showlegend=False
+                ))
+            except: pass
+
+        # 3. Точки (без текста)
+        for i, profile_name in enumerate(profiles):
+            group_df = df_hist_no_lr[df_hist_no_lr['Profile'] == profile_name]
+            fig_f1.add_trace(go.Scatter(
+                x=group_df['x_jitter'], y=group_df['f1_score'], mode='markers',
+                marker=dict(
+                    size=12, 
+                    color=profile_colors[i % len(profile_colors)],
+                    line=dict(width=1, color='black'),
+                    symbol=group_df['Model_Family'].map(family_shapes).fillna('circle')
+                ),
+                name=f'Профиль: {profile_name}',
+                hovertext=group_df['Model']
+            ))
+
+        fig_f1.update_xaxes(tickvals=list(family_to_num.values()), ticktext=list(family_to_num.keys()), title_text="Семейство алгоритмов (Форма)")
         fig_f1.update_yaxes(title_text="F1 Score")
         render_tall_chart(fig_f1, height=700, width=800)
         st.divider()
 
         # ========================================== #
-        # ГРАФИК 2: Микроскоп P vs R (ИСПРАВЛЕНО 1:1 + КЛАСТЕРИЗАЦИЯ)
+        # ГРАФИК 2: Микроскоп P vs R
         # ========================================== #
         st.subheader("Матрица ошибок: Микроскоп Precision vs Recall")
-        st.caption("Физические оси равны (1:1). Масштаб 0.8–1.0. Облака — кластеры поведения моделей (DBSCAN).")
+        st.caption("Облака — кластеры поведения (DBSCAN). Форма точки — семейство алгоритмов. Масштаб 0.8–1.0.")
 
         if len(df_hist_no_lr) >= 3:
-            # Повышен eps до 0.035, чтобы кластеры не вырождались и объединяли соседние точки
             dbscan_pr = DBSCAN(eps=0.035, min_samples=2)
             df_hist_no_lr['Cluster_PR'] = dbscan_pr.fit_predict(df_hist_no_lr[['precision', 'recall']])
             
             fig_pr = px.scatter(
-                df_hist_no_lr, x="recall", y="precision", color="Model_Family", symbol="Profile",
+                df_hist_no_lr, x="recall", y="precision", color="Model_Family", symbol="Model_Family",
+                symbol_map=family_shapes,
                 hover_data={"Model": True, "Run": True, "Cluster_PR": True}
             )
-            add_cluster_hulls(fig_pr, df_hist_no_lr, 'recall', 'precision', 'Cluster_PR')
-            fig_pr.update_traces(marker=dict(size=10, line=dict(width=1, color='DarkSlateGrey')), selector=dict(type='scatter'))
-        else:
-            fig_pr = px.scatter(df_hist_no_lr, x="recall", y="precision", color="Model_Family", symbol="Profile")
-            fig_pr.update_traces(marker=dict(size=10))
+            
+            for c_id in df_hist_no_lr['Cluster_PR'].unique():
+                if c_id == -1: continue
+                c_df = df_hist_no_lr[df_hist_no_lr['Cluster_PR'] == c_id]
+                if len(c_df) < 3: continue
+                points = c_df[['recall', 'precision']].values
+                try:
+                    hull = ConvexHull(points)
+                    hull_points = points[hull.vertices].tolist()
+                    hull_points.append(hull_points[0])
+                    x_hull, y_hull = zip(*hull_points)
+                    color_idx = int(c_id) % len(cluster_colors_list)
+                    rgb = px.colors.hex_to_rgb(cluster_colors_list[color_idx])
+                    fillcolor = f'rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.05)'
+                    fig_pr.add_trace(go.Scatter(
+                        x=x_hull, y=y_hull, fill='toself',
+                        fillcolor=fillcolor,
+                        line=dict(color=cluster_colors_list[color_idx], width=2, dash='dot'),
+                        name=f'Кластер {c_id}', hoverinfo='skip', showlegend=False
+                    ))
+                except: pass
 
-        # ЖЕСТКАЯ ФИКСАЦИЯ КВАДРАТА 1:1 (constrain="domain" не дает оси растягиваться за пределы 0.8-1.0)
+            # Убран текст, оставлены только маркеры
+            fig_pr.update_traces(
+                mode='markers', 
+                marker=dict(size=10, line=dict(width=1, color='DarkSlateGrey'))
+            )
+        else:
+            fig_pr = px.scatter(df_hist_no_lr, x="recall", y="precision", color="Model_Family", symbol="Model_Family")
+
         fig_pr.update_xaxes(range=[0.8, 1.0], dtick=0.05, constrain="domain")
         fig_pr.update_yaxes(range=[0.8, 1.0], dtick=0.05, scaleanchor="x", scaleratio=1, constrain="domain")
-        
         fig_pr.add_shape(type="line", x0=0.8, y0=0.8, x1=1.0, y1=1.0, line=dict(color="gray", width=2, dash="dash"))
-        fig_pr.update_layout(width=700, height=700, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+        fig_pr.update_layout(width=750, height=700, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
         
         col1, col2, col3 = st.columns([1, 3, 1])
         with col2: st.plotly_chart(fig_pr, use_container_width=False)
         st.divider()
 
         # ========================================== #
-        # ГРАФИК 3: Boxplot компромисса
+        # ГРАФИК 3: Влияние профиля данных
         # ========================================== #
-        st.subheader("Метрика компромисса: $D = \\sqrt{(1-P)^2 + (1-R)^2}$")
-        st.caption("Низкий и узкий ящик = модель стабильна и близка к идеалу.")
+        st.subheader("Чувствительность к препроцессингу: Архитектура vs Профиль данных")
+        st.caption("Если строка одного цвета — модель игнорирует шум в данных.")
 
-        np.random.seed(42)
-        df_hist_no_lr['x_jitter_dist'] = df_hist_no_lr['Model_Family'].map(family_to_num) + np.random.uniform(-0.3, 0.3, len(df_hist_no_lr))
+        pivot_df = df_hist_no_lr.groupby(['Model_Family', 'Profile'])['f1_score'].mean().reset_index()
+        heatmap_prof_data = pivot_df.pivot(index='Model_Family', columns='Profile', values='f1_score')
+        heatmap_prof_data = heatmap_prof_data.fillna(heatmap_prof_data.mean(axis=1))
         
-        fig_dist = px.scatter(df_hist_no_lr, x="x_jitter_dist", y="Utopia_Dist", color="Profile", hover_data=["Run", "Model"])
-        for family, x_num in family_to_num.items():
-            family_data = df_hist_no_lr[df_hist_no_lr['Model_Family'] == family]['Utopia_Dist']
-            fig_dist.add_trace(go.Box(
-                y=family_data, x=[x_num]*len(family_data),
-                marker_color='rgba(200,200,200,0.3)', line_color='rgba(50,50,50,0.8)', fillcolor='rgba(200,200,200,0.2)',
-                showlegend=False, boxpoints=False, name=family
-            ))
-        fig_dist.update_traces(marker=dict(size=8, opacity=0.8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(type='scatter'))
-        fig_dist.update_xaxes(tickvals=list(family_to_num.values()), ticktext=list(family_to_num.keys()), title_text="Семейство алгоритмов")
-        fig_dist.update_yaxes(title_text="Distance to (1, 1) [меньше = лучше]")
-        render_tall_chart(fig_dist, height=700, width=800)
+        fig_prof = px.imshow(
+            heatmap_prof_data.values, labels=dict(x="Профиль данных", y="Семейство", color="F1 Score"),
+            x=heatmap_prof_data.columns, y=heatmap_prof_data.index, text_auto=".3f", aspect="auto", 
+            color_continuous_scale="RdYlGn", range_color=[heatmap_prof_data.min().min() - 0.01, heatmap_prof_data.max().max() + 0.01]
+        )
+        fig_prof.update_xaxes(side="top")
+        render_tall_chart(fig_prof, height=500, width=800)
         st.divider()
 
         # ========================================== #
-        # ГРАФИК 4: Архитектурная спарсификация + Кластеризация
+        # ГРАФИК 4: Архитектурная спарсификация (Кластеры исправлены)
         # ========================================== #
         st.subheader("Архитектурная спарсификация: F1 vs Количество признаков")
-        st.caption("Облака показывают группы моделей с похожим балансом сложности и качества. Консервативные модели отбрасывают шум, сжимаясь влево.")
+        st.caption("Тепловые волны (KDE). Форма и цвет — семейство алгоритмов. Консервативные модели сжимаются влево.")
+
+        fig_sparse = go.Figure()
 
         if len(df_hist_no_lr) >= 3:
-            scaler = MinMaxScaler()
-            scaled_data = scaler.fit_transform(df_hist_no_lr[['Num_Features', 'f1_score']])
-            dbscan_sparse = DBSCAN(eps=0.15, min_samples=2)
-            df_hist_no_lr['Cluster_Sparse'] = dbscan_sparse.fit_predict(scaled_data)
-            
-            fig_sparse = px.scatter(
-                df_hist_no_lr, x="Num_Features", y="f1_score", color="Model_Family", symbol="Profile",
-                hover_data={"Model": True, "Run": True, "Cluster_Sparse": True}
-            )
-            add_cluster_hulls(fig_sparse, df_hist_no_lr, 'Num_Features', 'f1_score', 'Cluster_Sparse')
-            fig_sparse.update_traces(marker=dict(size=10, line=dict(width=1, color='DarkSlateGrey')), selector=dict(type='scatter'))
-        else:
-            fig_sparse = px.scatter(df_hist_no_lr, x="Num_Features", y="f1_score", color="Model_Family", symbol="Profile")
-            fig_sparse.update_traces(marker=dict(size=10))
+            try:
+                from scipy.stats import gaussian_kde
+                x_sp = df_hist_no_lr['Num_Features'].values
+                y_sp = df_hist_no_lr['f1_score'].values
+                xi_s = np.linspace(x_sp.min(), x_sp.max(), 100)
+                yi_s = np.linspace(y_sp.min() - 0.01, y_sp.max() + 0.01, 100)
+                xx_s, yy_s = np.meshgrid(xi_s, yi_s)
+                values_s = np.vstack([x_sp, y_sp])
+                kernel_s = gaussian_kde(values_s)
+                zz_s = kernel_s(np.vstack([xx_s.ravel(), yy_s.ravel()])).reshape(xx_s.shape)
+                
+                fig_sparse.add_trace(go.Contour(
+                    z=zz_s, x=xi_s, y=yi_s, showscale=False,
+                    colorscale=[
+                        [0, 'rgba(255,255,255,0.0)'], [0.15, 'rgba(255,240,200,0.15)'],
+                        [0.4, 'rgba(255,200,100,0.25)'], [1, 'rgba(255,150,50,0.4)']
+                    ],
+                    line_width=0.5, line_color='rgba(200,150,100,0.2)', hoverinfo='skip'
+                ))
+            except Exception: pass
 
-        fig_sparse.update_xaxes(title_text="Количество значимых признаков (Importance > 0.01)")
+            # Кластеризация (исправлен баг пустых квадратов)
+            scaler_sp = MinMaxScaler()
+            scaled_sp = scaler_sp.fit_transform(df_hist_no_lr[['Num_Features', 'f1_score']])
+            dbscan_sp = DBSCAN(eps=0.15, min_samples=2)
+            df_hist_no_lr['Cluster_Sparse'] = dbscan_sp.fit_predict(scaled_sp)
+
+            for c_id in df_hist_no_lr['Cluster_Sparse'].unique():
+                if c_id == -1: continue
+                c_df = df_hist_no_lr[df_hist_no_lr['Cluster_Sparse'] == c_id]
+                if len(c_df) < 3: continue
+                
+                # Используем ОРИГИНАЛЬНЫЕ координаты из c_df
+                points = c_df[['Num_Features', 'f1_score']].values
+                try:
+                    hull = ConvexHull(points)
+                    hull_points = points[hull.vertices].tolist()
+                    hull_points.append(hull_points[0])
+                    x_hull, y_hull = zip(*hull_points)
+                    color_idx = int(c_id) % len(cluster_colors_list)
+                    rgb = px.colors.hex_to_rgb(cluster_colors_list[color_idx])
+                    fillcolor = f'rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.05)'
+                    fig_sparse.add_trace(go.Scatter(
+                        x=x_hull, y=y_hull, fill='toself',
+                        fillcolor=fillcolor,
+                        line=dict(color=cluster_colors_list[color_idx], width=2, dash='dot'),
+                        name=f'Кластер {c_id}', hoverinfo='skip', showlegend=False
+                    ))
+                except: pass
+
+        # Группировка точек по Семействам
+        for family_name, group_df in df_hist_no_lr.groupby('Model_Family'):
+            fig_sparse.add_trace(go.Scatter(
+                x=group_df['Num_Features'], y=group_df['f1_score'], mode='markers',
+                marker=dict(
+                    size=12, 
+                    color=family_colors_sparse.get(family_name, '#999999'),
+                    line=dict(width=1, color='black'),
+                    symbol=family_shapes.get(family_name, 'circle')
+                ),
+                name=family_name, 
+                hovertext=group_df['Model']
+            ))
+
+        fig_sparse.update_xaxes(title_text="Количество значимых признаков")
         fig_sparse.update_yaxes(title_text="F1 Score")
         render_tall_chart(fig_sparse, height=600, width=800)
         st.divider()
 
         # ========================================== #
-        # БЛОК 5: Инъекция аномалий (All vs All Matrix)
+        # ГРАФИК 5: Граница Парето (Исправлен баг цвета)
+        # ========================================== #
+        st.subheader("Идеальный компромисс: Граница Парето (Сложность vs Качество)")
+        st.caption("Звёзды — оптимальные модели: лучший F1 при минимальном числе признаков.")
+
+        pareto_df = df_hist_no_lr.sort_values(by='Num_Features')
+        best_f1 = -1
+        pareto_points = []
+        for _, row in pareto_df.iterrows():
+            if row['f1_score'] > best_f1:
+                pareto_points.append(row)
+                best_f1 = row['f1_score']
+                
+        if pareto_points:
+            pareto_df_final = pd.DataFrame(pareto_points)
+            fig_pareto = go.Figure()
+            
+            for family_name, group_df in df_hist_no_lr.groupby('Model_Family'):
+                # Безопасное создание rgba строки
+                hex_color = family_colors_sparse.get(family_name, '#999999')
+                rgb = px.colors.hex_to_rgb(hex_color)
+                rgba_color = f'rgba({rgb[0]}, {rgb[1]}, {rgb[2]}, 0.4)'
+                
+                fig_pareto.add_trace(go.Scatter(
+                    x=group_df['Num_Features'], y=group_df['f1_score'], mode='markers',
+                    marker=dict(
+                        size=8, 
+                        color=rgba_color,
+                        symbol=family_shapes.get(family_name, 'circle')
+                    ),
+                    name=family_name, hovertext=group_df['Run']
+                ))
+                
+            fig_pareto.add_trace(go.Scatter(
+                x=pareto_df_final['Num_Features'], y=pareto_df_final['f1_score'], mode='lines+markers',
+                line=dict(color='#2ecc71', width=3, dash='dash'),
+                marker=dict(size=14, color='#2ecc71', symbol='star', line=dict(width=2, color='DarkGreen')),
+                name='Граница Парето', hovertext=pareto_df_final['Run']
+            ))
+            
+            fig_pareto.update_xaxes(title_text="Количество значимых признаков")
+            fig_pareto.update_yaxes(title_text="F1 Score")
+            fig_pareto.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+            render_tall_chart(fig_pareto, height=600, width=800)
+        st.divider()
+
+        # ========================================== #
+        # ГРАФИК 6: Время инференса vs F1
+        # ========================================== #
+        st.subheader("Production Ready: Время отклика vs Качество")
+        st.caption("Замер времени на предсказание одной строки (100 прогонов). Размер точки — число признаков. Идеально для выбора модели в Real-Time.")
+
+        data_list = get_files("data/processed", ".csv")
+        models_list = get_files("models", ".pkl")
+        
+        if data_list and models_list:
+            latency_data_name = st.selectbox("Датасет для бенчмарка задержки", data_list, key="latency_data_sel")
+            
+            if st.button("Запустить замер задержки (Inference Time)", type="primary"):
+                with st.spinner("Прогоняем модели на 1 строке данных 100 раз..."):
+                    import time
+                    path_d = Path("data/processed") / latency_data_name
+                    df_bench = pd.read_csv(path_d).replace(-1, 0).head(1)
+                    
+                    latency_results = []
+                    
+                    for model_name in models_list:
+                        try:
+                            model_data = load_model_pipeline(Path("models") / model_name)
+                            X_bench = df_bench[model_data['features']]
+                            
+                            for _ in range(10): model_data['model'].predict(X_bench)
+                            
+                            start_time = time.perf_counter()
+                            for _ in range(100):
+                                model_data['model'].predict(X_bench)
+                            elapsed_ms = (time.perf_counter() - start_time) / 100 * 1000
+                            
+                            hist_row = df_hist_no_lr[df_hist_no_lr['Run'] == model_name.replace('.pkl', '')]
+                            f1_val = hist_row['f1_score'].iloc[0] if not hist_row.empty else 0
+                            fam = hist_row['Model_Family'].iloc[0] if not hist_row.empty else get_model_family(model_name)
+                            n_feat = hist_row['Num_Features'].iloc[0] if not hist_row.empty else len(model_data['features'])
+                            
+                            latency_results.append({
+                                "Model": model_name.replace('.pkl', ''),
+                                "Latency_ms": elapsed_ms,
+                                "F1": f1_val,
+                                "Family": fam,
+                                "Num_Features": n_feat
+                            })
+                        except Exception as e: pass
+                    
+                    if latency_results:
+                        df_lat = pd.DataFrame(latency_results)
+                        fig_lat = px.scatter(
+                            df_lat, x="Latency_ms", y="F1", color="Family", symbol="Family",
+                            symbol_map=family_shapes,
+                            size="Num_Features", hover_data=["Model"],
+                            title="Диагностика 1 строки (мс) vs F1"
+                        )
+                        fig_lat.update_traces(marker=dict(line=dict(width=1, color='DarkSlateGrey')))
+                        fig_lat.update_xaxes(title_text="Время инференса (мс) [Меньше = Быстрее]")
+                        fig_lat.update_yaxes(title_text="F1 Score")
+                        render_tall_chart(fig_lat, height=600, width=800)
+        st.divider()
+
+        # ========================================== #
+        # БЛОК 7: Инъекция аномалий
         # ========================================== #
         st.subheader("Стресс-тестирование: All vs All Матрица Робастности")
-        st.caption("Автоматический прогон искажений с разной силой. Показывает, при каком уровне яда архитектура начинает сыпаться.")
+        st.caption("Автоматический прогон искажений. Показывает, при каком уровне яда архитектура начинает сыпаться.")
         
         with st.expander("Настройки стресс-теста", expanded=True):
-            stress_data_name = st.selectbox("Целевой датасет", get_files("data/processed", ".csv"), key="stress_data_sel")
+            stress_data_name = st.selectbox("Целевой датасет", data_list, key="stress_data_sel")
             scenario = st.selectbox("Сценарий искажения", [
                 "Сценарий 1: Инфляция максимальных значений (max_*)",
                 "Сценарий 2: Дефляция минимальных значений (min_*)"
             ], key="stress_scen_sel")
 
-        models_list = get_files("models", ".pkl")
-        
         if stress_data_name and models_list:
             if st.button("Запустить мульти-стресс-тест", type="primary"):
                 with st.spinner("Вычисление деградации на 3 уровнях искажения..."):

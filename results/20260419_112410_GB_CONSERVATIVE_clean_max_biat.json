@@ -1,0 +1,70 @@
+{
+    "timestamp": "2026-04-19 11:24:10",
+    "model_name": "GB_CONSERVATIVE",
+    "run_name": "GB_CONSERVATIVE_clean_max_biat",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.7010942384993301,
+        "precision": 0.6621045147529329,
+        "recall": 0.8275938680293268,
+        "f1_score": 0.7356571541423916
+    },
+    "feature_importance_full": [
+        {
+            "feature": "total_fiat",
+            "importance": 0.026775082264889092
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.004530974639121879
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.17281584067076178
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.12570945113263396
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.02974043381889522
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.008175368369487165
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.0
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.0033156414543049923
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.11981985424980413
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.01878303998603695
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.3141522582075689
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.13505424169042524
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.035104834363943106
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.006022979152127495
+        }
+    ]
+}

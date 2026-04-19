@@ -1,0 +1,70 @@
+{
+    "timestamp": "2026-04-19 11:26:41",
+    "model_name": "STACKING",
+    "run_name": "STACKING_clean_max_biat",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.9421616793211255,
+        "precision": 0.9282795698924731,
+        "recall": 0.9590091090868695,
+        "f1_score": 0.943394164572178
+    },
+    "feature_importance_full": [
+        {
+            "feature": "total_fiat",
+            "importance": 0.046861445234439664
+        },
+        {
+            "feature": "total_biat",
+            "importance": 0.03834925079100285
+        },
+        {
+            "feature": "min_fiat",
+            "importance": 0.07917586004727241
+        },
+        {
+            "feature": "min_biat",
+            "importance": 0.09165713563852482
+        },
+        {
+            "feature": "max_fiat",
+            "importance": 0.0686454177965718
+        },
+        {
+            "feature": "max_biat",
+            "importance": 0.04873682520382145
+        },
+        {
+            "feature": "mean_fiat",
+            "importance": 0.0615354665095742
+        },
+        {
+            "feature": "mean_biat",
+            "importance": 0.07280151648276245
+        },
+        {
+            "feature": "flowPktsPerSecond",
+            "importance": 0.08908452219085836
+        },
+        {
+            "feature": "flowBytesPerSecond",
+            "importance": 0.08094018068090117
+        },
+        {
+            "feature": "min_flowiat",
+            "importance": 0.09996961742116896
+        },
+        {
+            "feature": "max_flowiat",
+            "importance": 0.08668000227435735
+        },
+        {
+            "feature": "mean_flowiat",
+            "importance": 0.06918785146855358
+        },
+        {
+            "feature": "std_flowiat",
+            "importance": 0.06637492316135209
+        }
+    ]
+}
