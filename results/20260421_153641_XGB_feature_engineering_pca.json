@@ -1,0 +1,13 @@
+{
+    "timestamp": "2026-04-21 15:36:41",
+    "model_name": "XGB",
+    "run_name": "XGB_feature_engineering_pca",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.8822018758374274,
+        "precision": 0.8713362068965518,
+        "recall": 0.8982448344812264,
+        "f1_score": 0.8845859315173394
+    },
+    "feature_importance_full": []
+}

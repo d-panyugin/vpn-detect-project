@@ -12,6 +12,10 @@ st.set_page_config(page_title="Train Model", layout="centered")
 st.title("Model Training Hub")
 st.caption("Настройте параметры и запустите обучение прямо в браузере.")
 
+# --- ФИКС: Инициализация переменных до виджетов ---
+use_pca = False
+# --------------------------------------------------
+
 # --- СЛОВАРИ С ОПИСАНИЕМ МОДЕЛЕЙ И ПАЙПЛАЙНОВ ---
 MODEL_LABELS = {
     "rf": "Random Forest (быстрый)",
@@ -35,7 +39,8 @@ PROFILE_LABELS = {
     "default": "Базовый (без изменений)",
     "drop_active_idle": "Очистка Active/Idle",
     "clean_max_biat": "Агрессивная очистка шума",
-    "feature_engineering": "Генерация фичей (медленно)"
+    "feature_engineering": "Генерация фичей (медленно)",
+    "quantile_profile": "Квантильная обрезка выбросов"
 }
 
 # --- 1. ВЫБОР ДАННЫХ ---
@@ -75,7 +80,7 @@ profile_key = st.selectbox(
 # Динамическая подсказка по профилю
 st.info(f"**Что делает этот профиль:** {PIPELINE_PROFILES[profile_key]['description']}")
 
-use_pca = st.checkbox("Использовать PCA (сократить количество признаков, сохранив 95% информации)")
+use_pca = st.checkbox("Использовать PCA (сократить количество признаков, сохранив 95% информации)", value=use_pca)
 
 # --- 3. СОХРАНЕНИЕ ---
 st.subheader("3. Сохранение результата")

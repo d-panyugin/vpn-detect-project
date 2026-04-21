@@ -1,0 +1,13 @@
+{
+    "timestamp": "2026-04-21 15:38:17",
+    "model_name": "BAG_DT",
+    "run_name": "BAG_DT_feature_engineering_pca",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.9013510495757034,
+        "precision": 0.8939344440814548,
+        "recall": 0.9119084647856032,
+        "f1_score": 0.9028320043992302
+    },
+    "feature_importance_full": []
+}

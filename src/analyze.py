@@ -115,8 +115,51 @@ with tab_history:
         
         if raw.get('feature_importance_full'):
             st.subheader("Feature Importance")
-            fi = pd.DataFrame(raw['feature_importance_full']).sort_values('importance', ascending=False).head(20)
-            fig = px.bar(fi, x='importance', y='feature', orientation='h', color_discrete_sequence=['#3366CC'])
+            all_fi = []
+
+            for _, row in df_hist.iterrows():
+                raw = row['Raw']
+                fi = raw.get('feature_importance_full', [])
+                for f in fi:
+                    all_fi.append({
+                        'feature': f.get('feature'),
+                        'importance': f.get('importance', 0),
+                        'model': row['Model']
+                    })
+
+            df_fi = pd.DataFrame(all_fi)
+
+            # Агрегация
+            fi_stats = df_fi.groupby('feature')['importance'].agg(['mean', 'std']).reset_index()
+            fi_stats['cv'] = fi_stats['std'] / (fi_stats['mean'] + 1e-6)
+
+            # топ-15
+            fi_top = fi_stats.sort_values('mean', ascending=False).head(15)
+
+            fig = go.Figure()
+
+            fig.add_trace(go.Bar(
+                x=fi_top['mean'],
+                y=fi_top['feature'],
+                orientation='h',
+                error_x=dict(
+                    type='data',
+                    array=fi_top['std'],
+                    visible=True
+                ),
+                marker=dict(
+                    color=fi_top['cv'],
+                    colorscale='RdYlGn_r',
+                    colorbar=dict(title="Instability (CV)")
+                )
+            ))
+
+            fig.update_layout(
+                title="Feature Importance (Mean ± Variance)",
+                xaxis_title="Importance",
+                yaxis_title="Feature"
+            )
+
             st.plotly_chart(fig, use_container_width=True)
             st.divider()
 
@@ -295,8 +338,21 @@ with tab_research:
         metrics_list = ['accuracy', 'precision', 'recall', 'f1_score']
         for m in metrics_list:
             df_hist[m] = df_hist['Raw'].apply(lambda x: x['metrics'].get(m, 0))
-            
-        df_hist['Profile'] = df_hist['Run'].apply(lambda x: x.split('_', 1)[1] if '_' in x else 'default')
+        def extract_profile(run_name, model_name):
+            prefix = f"{model_name}_"
+            if run_name.startswith(prefix):
+                profile = run_name[len(prefix):]
+            elif run_name.startswith(model_name):
+                profile = run_name[len(model_name):].lstrip("_")
+            else:
+                profile = run_name
+
+            return profile[:-4] if profile.endswith("_pca") else profile
+
+        df_hist['Profile'] = df_hist.apply(
+            lambda row: extract_profile(row['Run'], row['Model']),
+            axis=1
+        )
         df_hist['Dataset'] = df_hist['Raw'].apply(lambda x: x.get('train_dataset', 'unknown'))
         df_hist['Timestamp'] = pd.to_datetime(df_hist['Timestamp'], errors='coerce')
         
@@ -320,7 +376,6 @@ with tab_research:
         df_hist['Model_Family'] = df_hist['Model'].apply(get_model_family)
         df_hist_no_lr = df_hist[df_hist['Model_Family'] != 'Линейные (LR)'].copy()
 
-        family_shapes = {'XGBoost': 'circle', 'Стекинг': 'star', 'Gradient Boosting': 'square', 'Деревья и Бэггинг': 'diamond'}
         family_colors = {'XGBoost': '#636EFA', 'Стекинг': '#FF6692', 'Gradient Boosting': '#FFA15A', 'Деревья и Бэггинг': '#B6E880'}
 
         def render_tall_chart(fig, height=700, width=800):
@@ -357,7 +412,6 @@ with tab_research:
             marker=dict(
                 size=12, color=df_hist_no_lr['f1_delta'], colorscale='RdYlGn',
                 line=dict(width=1, color='black'),
-                symbol=df_hist_no_lr['Model_Family'].map(family_shapes).fillna('circle'),
                 colorbar=dict(title="Delta F1", thickness=10, len=0.5)
             ),
             hovertext=df_hist_no_lr.apply(lambda x: f"{x['Model']}<br>Profile: {x['Profile']}<br>F1: {x['f1_score']:.4f}", axis=1)
@@ -369,140 +423,170 @@ with tab_research:
         st.divider()
 
         # ========================================== #
-        # ГРАФИК 2: Precision vs Recall (Density + Adaptive Jitter)
+        # ГРАФИК 2: Precision vs Recall (Iso-F1 Contours)
         # ========================================== #
         st.subheader("Матрица ошибок: Trade-off Precision vs Recall")
-        st.caption("Фон — плотность моделей. Джиттер и прозрачность помогают рассмотреть слипшиеся точки. Топ-3 по F1 выделены.")
+        st.caption("Iso-F1 контуры показывают границы качества. Размер точки = F1. Топ-3 выделены.")
 
-        scale_r = df_hist_no_lr['recall'].std() * 0.2
-        scale_p = df_hist_no_lr['precision'].std() * 0.2
         np.random.seed(42)
-        df_hist_no_lr['recall_j'] = df_hist_no_lr['recall'] + np.random.normal(0, max(scale_r, 0.005), len(df_hist_no_lr))
-        df_hist_no_lr['precision_j'] = df_hist_no_lr['precision'] + np.random.normal(0, max(scale_p, 0.005), len(df_hist_no_lr))
+        df_hist_no_lr['recall_j'] = df_hist_no_lr['recall'] + np.random.normal(0, 0.003, len(df_hist_no_lr))
+        df_hist_no_lr['precision_j'] = df_hist_no_lr['precision'] + np.random.normal(0, 0.003, len(df_hist_no_lr))
 
         fig_pr = go.Figure()
 
-        fig_pr.add_trace(go.Histogram2dContour(
-            x=df_hist_no_lr['recall'], 
-            y=df_hist_no_lr['precision'],
-            colorscale='Blues',
-            showscale=False,
-            opacity=0.4,
-            hoverinfo='skip'
-        ))
+        f1_levels = [0.85, 0.90, 0.92, 0.95]
+        recall_range = np.linspace(0.8, 1.0, 200)
+
+        for f1_val in f1_levels:
+            denom = 2 * recall_range - f1_val
+            precision_vals = np.where(denom != 0, (f1_val * recall_range) / denom, np.nan)
+
+            valid_mask = np.isfinite(precision_vals) & (precision_vals >= 0) & (precision_vals <= 1)
+
+            r_valid = recall_range[valid_mask]
+            p_valid = precision_vals[valid_mask]
+
+            if len(r_valid) > 1:
+                fig_pr.add_trace(go.Scatter(
+                    x=r_valid, y=p_valid,
+                    mode='lines',
+                    line=dict(color='rgba(120, 120, 120, 0.35)', width=1.5, dash='dash'),
+                    hoverinfo='skip',
+                    showlegend=False
+                ))
+
+                fig_pr.add_annotation(
+                    x=r_valid[0], y=p_valid[0],
+                    text=f"F1={f1_val:.2f}",
+                    showarrow=False,
+                    font=dict(color='rgba(80, 80, 80, 0.75)', size=9),
+                    xanchor='right',
+                    yanchor='bottom'
+                )
 
         fig_pr.add_shape(type="rect", x0=0.95, y0=0.95, x1=1.01, y1=1.01, fillcolor="rgba(46, 204, 113, 0.15)", line_width=0)
         fig_pr.add_annotation(x=0.98, y=0.955, text="Utopia Zone", showarrow=False, font=dict(color="green", size=10))
 
         fig_pr.add_trace(go.Scatter(
             x=df_hist_no_lr['recall_j'], y=df_hist_no_lr['precision_j'], mode='markers',
-            marker=dict(size=8, color='rgba(150, 150, 150, 0.6)', symbol=df_hist_no_lr['Model_Family'].map(family_shapes).fillna('circle')),
-            hovertext=df_hist_no_lr['Model'], showlegend=False
+            marker=dict(
+                size=12,
+                color='rgba(150, 150, 150, 0.6)',
+                line=dict(width=1, color='DarkSlateGrey')
+            ),
+            hovertext=df_hist_no_lr.apply(lambda x: f"{x['Model']} (F1: {x['f1_score']:.3f})", axis=1),
+            showlegend=False
         ))
 
         if len(df_hist_no_lr) >= 3:
             top_3 = df_hist_no_lr.nlargest(3, 'f1_score')
             fig_pr.add_trace(go.Scatter(
                 x=top_3['recall_j'], y=top_3['precision_j'], mode='markers+text',
-                marker=dict(size=14, color='#2ecc71', symbol=top_3['Model_Family'].map(family_shapes).fillna('circle'), line=dict(width=2, color='black')),
+                marker=dict(size=14, color='#2ecc71', line=dict(width=2, color='black')),
                 text=top_3['Model'], textposition='top center', textfont=dict(color='black', size=11, weight='bold'),
                 hovertext=top_3['Run'], name='Top 3 F1'
             ))
 
-        min_r = 0.8
-        min_p = 0.8
+        min_r, min_p = 0.8, 0.8
         fig_pr.update_xaxes(range=[min_r, 1.005], dtick=0.05, constrain="domain", title_text="Recall")
         fig_pr.update_yaxes(range=[min_p, 1.005], dtick=0.05, scaleanchor="x", scaleratio=1, constrain="domain", title_text="Precision")
-        
+
         fig_pr.add_shape(type="line", x0=min_r, y0=min_p, x1=1.005, y1=1.005, line=dict(color="gray", width=2, dash="dash"))
         fig_pr.update_layout(width=750, height=700, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-        
+
         col1, col2, col3 = st.columns([1, 3, 1])
         with col2: st.plotly_chart(fig_pr, use_container_width=False)
         st.divider()
+
         # ========================================== #
-        # ГРАФИК 3: Heatmap (DELTA F1 - Убийца шоколадки)
+        # ГРАФИК 4A: Спарсификация — low-variance Models
         # ========================================== #
-        st.subheader("Влияние препроцессинга: Delta F1 от профиля данных")
-        st.caption("Показывает не средний скор, а НАСКОЛЬКО профиль улучшает/ухудшает модель относительно её базовой линии. Красный = вредит, Зеленый = помогает. Пустые клетки = нет эксперимента.")
+        st.subheader("Спарсификация: Стабильные модели (low-variance)")
+        st.caption("Модели с дисперсией F1 ≤ медиана. Тренд — линейная регрессия (без полиномов).")
 
-        pivot_df = df_hist_no_lr.groupby(['Model_Family', 'Profile'])['f1_score'].mean().reset_index()
-        heatmap_f1 = pivot_df.pivot(index='Model_Family', columns='Profile', values='f1_score')
-        
-        # 1. Удаляем строки/столбцы, где вообще нет данных (полные NaN)
-        heatmap_f1 = heatmap_f1.dropna(axis=0, how='all').dropna(axis=1, how='all')
-        
-        # 2. Считаем базовую линию (среднее по доступным профилям для модели)
-        baseline = heatmap_f1.mean(axis=1)
-        
-        # 3. Считаем Дельту (отклонение от базовой линии)
-        heatmap_delta = heatmap_f1.sub(baseline, axis=0)
-        
-        # 4. Сортировка по качеству (baseline)
-        heatmap_delta = heatmap_delta.loc[baseline.sort_values(ascending=False).index]
+        model_f1_var = df_hist_no_lr.groupby('Model')['f1_score'].var().fillna(0)
+        var_threshold = model_f1_var.median()
+        df_hist_no_lr['f1_var'] = df_hist_no_lr['Model'].map(model_f1_var)
 
-        # 5. Формируем текст (показываем саму дельту со знаком + или -)
-        text_matrix = heatmap_delta.applymap(lambda x: f"{x:+.4f}" if not pd.isna(x) else "")
-        
-        # Выделяем лучший профиль (максимальная дельта)
-        for family in heatmap_delta.index:
-            valid_deltas = heatmap_delta.loc[family].dropna()
-            if not valid_deltas.empty:
-                best_prof = valid_deltas.idxmax()
-                val = valid_deltas[best_prof]
-                text_matrix.loc[family, best_prof] = f"⭐ {val:+.4f}"
+        df_conservative = df_hist_no_lr[df_hist_no_lr['f1_var'] <= var_threshold].copy()
+        df_non_conservative = df_hist_no_lr[df_hist_no_lr['f1_var'] > var_threshold].copy()
 
-        # Строим график
-        fig_prof = px.imshow(
-            heatmap_delta.values, 
-            x=heatmap_delta.columns, 
-            y=heatmap_delta.index,
-            color_continuous_scale='RdYlGn', # Красный - Плохо, Зеленый - Хорошо
-            color_continuous_midpoint=0, # ИСПРАВЛЕНИЕ ТУТ: центрируем шкалу относительно 0
-            aspect="auto"
-        )
-        
-        fig_prof.update_traces(
-            text=text_matrix.values, 
-            texttemplate="%{text}", 
-            textfont=dict(size=12),
-            hoverongaps=False # Не наводить мышку на пустые клетки
-        )
+        fig_4a = go.Figure()
 
-        fig_prof.update_layout(coloraxis_colorbar=dict(title="Δ F1", thickness=15))
-        fig_prof.update_xaxes(side="top", title_text="Профиль данных (Препроцессинг)")
-        fig_prof.update_yaxes(title_text="Семейство алгоритмов")
-        render_tall_chart(fig_prof, height=500, width=800)
+        if len(df_conservative) >= 2:
+            x_c = df_conservative['Num_Features'].values
+            y_c = df_conservative['f1_score'].values
+            if len(np.unique(x_c)) >= 2:
+                A = np.vstack([x_c, np.ones(len(x_c))]).T
+                slope, intercept = np.linalg.lstsq(A, y_c, rcond=None)[0]
+                x_trend = np.linspace(x_c.min(), x_c.max(), 100)
+                y_trend = slope * x_trend + intercept
+                fig_4a.add_trace(go.Scatter(
+                    x=x_trend, y=y_trend, mode='lines',
+                    line=dict(color='rgba(46, 204, 113, 0.6)', width=2, dash='dash'),
+                    name='Linear Trend'
+                ))
+
+        for family_name, group_df in df_conservative.groupby('Model_Family'):
+            fig_4a.add_trace(go.Scatter(
+                x=group_df['Num_Features'], y=group_df['f1_score'], mode='markers',
+                marker=dict(
+                    size=12, color=family_colors.get(family_name, '#999999'),
+                    line=dict(width=1, color='black')
+                ),
+                name=family_name,
+                hovertext=group_df.apply(
+                    lambda x: f"{x['Model']}<br>F1: {x['f1_score']:.4f}<br>Var: {x['f1_var']:.6f}", axis=1
+                )
+            ))
+
+        fig_4a.update_xaxes(title_text="Number of Features")
+        fig_4a.update_yaxes(title_text="F1 Score")
+        render_tall_chart(fig_4a, height=600, width=800)
         st.divider()
 
         # ========================================== #
-        # ГРАФИК 4: F1 vs количество признаков (Тренд)
+        # ГРАФИК 4B: Спарсификация — Non-Conservative Models
         # ========================================== #
-        st.subheader("Архитектурная спарсификация: Efficiency (Качество / Сложность)")
-        st.caption("Красная линия — тренд. Ищите модели выше линии (дают больше качества за меньшее число признаков).")
+        st.subheader("Спарсификация: Нестабильные модели (Non-Conservative)")
+        st.caption("Модели с дисперсией F1 > медиана. Размер маркера ∝ дисперсия. Усы = std F1.")
 
-        fig_sparse = go.Figure()
+        fig_4b = go.Figure()
 
-        if len(df_hist_no_lr) >= 4:
-            x_sp = df_hist_no_lr['Num_Features'].values
-            y_sp = df_hist_no_lr['f1_score'].values
-            try:
-                z = np.polyfit(x_sp, y_sp, 2)
-                p = np.poly1d(z)
-                x_trend = np.linspace(x_sp.min(), x_sp.max(), 100)
-                fig_sparse.add_trace(go.Scatter(x=x_trend, y=p(x_trend), mode='lines', name='Trend', line=dict(color='red', width=2, dash='dash')))
-            except: pass
+        if not df_non_conservative.empty:
+            df_nc = df_non_conservative.copy()
+            var_min, var_max = df_nc['f1_var'].min(), df_nc['f1_var'].max()
+            if var_max > var_min:
+                df_nc['marker_size'] = 8 + 12 * (df_nc['f1_var'] - var_min) / (var_max - var_min)
+            else:
+                df_nc['marker_size'] = 12
 
-        for family_name, group_df in df_hist_no_lr.groupby('Model_Family'):
-            fig_sparse.add_trace(go.Scatter(
-                x=group_df['Num_Features'], y=group_df['f1_score'], mode='markers',
-                marker=dict(size=12, color=family_colors.get(family_name, '#999999'), line=dict(width=1, color='black'), symbol=family_shapes.get(family_name, 'circle')),
-                name=family_name, hovertext=group_df['Model']
-            ))
+            model_f1_std = df_hist_no_lr.groupby('Model')['f1_score'].std().fillna(0)
+            df_nc['f1_std'] = df_nc['Model'].map(model_f1_std)
 
-        fig_sparse.update_xaxes(title_text="Количество значимых признаков")
-        fig_sparse.update_yaxes(title_text="F1 Score")
-        render_tall_chart(fig_sparse, height=600, width=800)
+            for family_name, group_df in df_nc.groupby('Model_Family'):
+                fig_4b.add_trace(go.Scatter(
+                    x=group_df['Num_Features'], y=group_df['f1_score'], mode='markers',
+                    marker=dict(
+                        size=group_df['marker_size'],
+                        color=family_colors.get(family_name, '#999999'),
+                        line=dict(width=1, color='black'), opacity=0.7
+                    ),
+                    error_y=dict(
+                        type='data', array=group_df['f1_std'].values,
+                        visible=True, color='rgba(200, 50, 50, 0.4)'
+                    ),
+                    name=family_name,
+                    hovertext=group_df.apply(
+                        lambda x: f"{x['Model']}<br>F1: {x['f1_score']:.4f}<br>Var: {x['f1_var']:.6f}<br>Std: {x['f1_std']:.6f}", axis=1
+                    )
+                ))
+
+            fig_4b.update_xaxes(title_text="Number of Features")
+            fig_4b.update_yaxes(title_text="F1 Score")
+            render_tall_chart(fig_4b, height=600, width=800)
+        else:
+            st.info("Нет нестабильных моделей (все модели имеют дисперсию F1 ≤ медианы).")
         st.divider()
 
         # ========================================== #
@@ -549,93 +633,22 @@ with tab_research:
                         name='Optimal Choice', hovertext=elbow_row['Model']
                     ))
             
-            fig_pareto.update_xaxes(title_text="Количество значимых признаков")
+            fig_pareto.update_xaxes(title_text="Number of Features")
             fig_pareto.update_yaxes(title_text="F1 Score")
             fig_pareto.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
             render_tall_chart(fig_pareto, height=600, width=800)
         st.divider()
 
         # ========================================== #
-        # ГРАФИК 6: Latency vs F1 (Production Score)
+        # FRAGILITY ANALYSIS
         # ========================================== #
-        st.subheader("Production Ready: Время отклика vs Качество")
-        st.caption("Ось X — логарифмическая. Золотая звезда — модель с максимальным Production Score (F1 / Latency).")
+        st.subheader("Анализ хрупкости: Fragility Analysis")
+        st.caption("Насколько быстро модели деградируют при искажении данных.")
 
         data_list = get_files("data/processed", ".csv")
         models_list = get_files("models", ".pkl")
-        
-        if data_list and models_list:
-            latency_data_name = st.selectbox("Датасет для бенчмарка задержки", data_list, key="latency_data_sel")
-            
-            if st.button("Запустить замер задержки (Inference Time)", type="primary"):
-                with st.spinner("Прогоняем модели на 1 строке данных 100 раз..."):
-                    import time
-                    path_d = Path("data/processed") / latency_data_name
-                    df_bench = pd.read_csv(path_d).replace(-1, 0).head(1)
-                    
-                    latency_results = []
-                    for model_name in models_list:
-                        try:
-                            model_data = load_model_pipeline(Path("models") / model_name)
-                            X_bench = df_bench[model_data['features']]
-                            for _ in range(10): model_data['model'].predict(X_bench)
-                            start_time = time.perf_counter()
-                            for _ in range(100): model_data['model'].predict(X_bench)
-                            elapsed_ms = (time.perf_counter() - start_time) / 100 * 1000
-                            
-                            hist_row = df_hist_no_lr[df_hist_no_lr['Run'] == model_name.replace('.pkl', '')]
-                            f1_val = hist_row['f1_score'].iloc[0] if not hist_row.empty else 0
-                            fam = hist_row['Model_Family'].iloc[0] if not hist_row.empty else get_model_family(model_name)
-                            n_feat = hist_row['Num_Features'].iloc[0] if not hist_row.empty else len(model_data['features'])
-                            
-                            latency_results.append({"Model": model_name.replace('.pkl', ''), "Latency_ms": elapsed_ms, "F1": f1_val, "Family": fam, "Num_Features": n_feat})
-                        except: pass
-                    
-                    if latency_results:
-                        df_lat = pd.DataFrame(latency_results)
-                        df_lat['Score'] = df_lat['F1'] / (df_lat['Latency_ms'] + 1e-6)
-                        
-                        fig_lat = go.Figure()
 
-                        fig_lat.add_vrect(x0=0, x1=5, fillcolor="rgba(46, 204, 113, 0.1)", line_width=0)
-                        fig_lat.add_annotation(x=2, y=df_lat['F1'].max(), text="Real-time", showarrow=False, font=dict(color="green", size=10))
-                        fig_lat.add_vrect(x0=5, x1=50, fillcolor="rgba(241, 196, 15, 0.1)", line_width=0)
-                        fig_lat.add_annotation(x=15, y=df_lat['F1'].max(), text="API", showarrow=False, font=dict(color="orange", size=10))
-                        fig_lat.add_vrect(x0=50, x1=df_lat['Latency_ms'].max()+10, fillcolor="rgba(231, 76, 60, 0.1)", line_width=0)
-                        fig_lat.add_annotation(x=60, y=df_lat['F1'].max(), text="Batch", showarrow=False, font=dict(color="red", size=10))
-
-                        fig_lat.add_trace(go.Scatter(
-                            x=df_lat['Latency_ms'], y=df_lat['F1'], mode='markers',
-                            marker=dict(
-                                size=df_lat['Num_Features'].apply(lambda x: max(8, x/2)),
-                                color=df_lat['Family'].map(family_colors),
-                                symbol=df_lat['Family'].map(family_shapes).fillna('circle'),
-                                line=dict(width=1, color='black'), opacity=0.8
-                            ),
-                            hovertext=df_lat.apply(lambda x: f"{x['Model']}<br>Feats: {x['Num_Features']}<br>Score: {x['Score']:.2f}", axis=1),
-                            name='Models'
-                        ))
-
-                        champion = df_lat.loc[df_lat['Score'].idxmax()]
-                        fig_lat.add_trace(go.Scatter(
-                            x=[champion['Latency_ms']], y=[champion['F1']], mode='markers+text',
-                            marker=dict(size=20, color='gold', symbol='star', line=dict(width=2, color='black')),
-                            text=['PROD CANDIDATE'], textposition='top center', textfont=dict(size=12, weight='bold'),
-                            showlegend=False
-                        ))
-
-                        fig_lat.update_xaxes(type='log', title_text="Время инференса (мс, лог. шкала)")
-                        fig_lat.update_yaxes(title_text="F1 Score")
-                        render_tall_chart(fig_lat, height=600, width=800)
-        st.divider()
-
-        # ========================================== #
-        # БЛОК 7: Инъекция аномалий
-        # ========================================== #
-        st.subheader("Стресс-тестирование: All vs All Матрица Робастности")
-        st.caption("Автоматический прогон искажений. Показывает, при каком уровне яда архитектура начинает сыпаться.")
-        
-        with st.expander("Настройки стресс-теста", expanded=True):
+        with st.expander("Настройки анализа хрупкости", expanded=True):
             stress_data_name = st.selectbox("Целевой датасет", data_list, key="stress_data_sel")
             scenario = st.selectbox("Сценарий искажения", [
                 "Сценарий 1: Инфляция максимальных значений (max_*)",
@@ -643,51 +656,323 @@ with tab_research:
             ], key="stress_scen_sel")
 
         if stress_data_name and models_list:
-            if st.button("Запустить мульти-стресс-тест", type="primary"):
-                with st.spinner("Вычисление деградации на 3 уровнях искажения..."):
+            if st.button("Запустить анализ хрупкости", type="primary"):
+                with st.spinner("Вычисление деградации на 4 уровнях искажения..."):
                     path_d = Path("data/processed") / stress_data_name
                     df_clean = pd.read_csv(path_d).replace(-1, 0)
-                    y_true = df_clean['traffic_type'].str.contains('VPN', na=False) if 'traffic_type' in df_clean.columns else None
-                    
-                    results_stress = []
-                    multipliers = [2.0, 5.0, 10.0]
-                    
+                    y_true = df_clean['traffic_type'].str.contains('VPN', na=False) \
+                        if 'traffic_type' in df_clean.columns else None
+
+                    fragility_results = []
+                    multipliers = [1.0, 2.0, 5.0, 10.0]
+
                     for model_name in models_list:
                         try:
                             model_data = load_model_pipeline(Path("models") / model_name)
                             X_clean = df_clean[model_data['features']]
                             pred_clean = model_data['model'].predict(X_clean)
-                            f1_clean = f1_score(y_true, pred_clean, zero_division=0) if y_true is not None else 0.0
-                            
+                            f1_clean_val = f1_score(y_true, pred_clean, zero_division=0) \
+                                if y_true is not None else 0.0
+
                             algo_key = model_name.replace('.pkl', '').split('_')[0]
                             family = get_model_family(algo_key)
-                            
-                            for mult in multipliers:
-                                df_distorted = df_clean.copy()
-                                if "Сценарий 1" in scenario:
-                                    max_cols = [c for c in X_clean.columns if c.startswith('max_')]
-                                    for col in max_cols: df_distorted[col] = np.maximum(X_clean[col] * mult, X_clean[col].mean())
-                                else:
-                                    min_cols = [c for c in X_clean.columns if c.startswith('min_')]
-                                    for col in min_cols: df_distorted[col] = np.minimum(X_clean[col] / mult, X_clean[col].mean())
-                                        
-                                X_distorted = df_distorted[model_data['features']]
-                                pred_distorted = model_data['model'].predict(X_distorted)
-                                f1_distorted = f1_score(y_true, pred_distorted, zero_division=0) if y_true is not None else 0.0
-                                
-                                results_stress.append({"Family": family, "Multiplier": f"x{int(mult)}", "Delta_F1": f1_clean - f1_distorted})
-                        except: pass
+                            model_label = model_name.replace('.pkl', '')
 
-                    df_res = pd.DataFrame(results_stress)
-                    if not df_res.empty:
-                        pivot_stress = df_res.groupby(['Family', 'Multiplier'])['Delta_F1'].mean().reset_index()
-                        col_order = [f"x{int(m)}" for m in multipliers]
-                        heatmap_data = pivot_stress.pivot(index='Family', columns='Multiplier', values='Delta_F1').reindex(columns=col_order)
-                        fig_stress = px.imshow(
-                            heatmap_data.values, labels=dict(x="Сила искажения", y="Семейство", color="Деградация F1"),
-                            x=heatmap_data.columns, y=heatmap_data.index, text_auto=".4f", aspect="auto", color_continuous_scale="Reds"
+                            for mult in multipliers:
+                                if mult == 1.0:
+                                    f1_distorted = f1_clean_val
+                                else:
+                                    df_distorted = df_clean.copy()
+                                    if "Сценарий 1" in scenario:
+                                        max_cols = [c for c in X_clean.columns if c.startswith('max_')]
+                                        for col in max_cols:
+                                            df_distorted[col] = np.maximum(
+                                                X_clean[col] * mult, X_clean[col].mean())
+                                    else:
+                                        min_cols = [c for c in X_clean.columns if c.startswith('min_')]
+                                        for col in min_cols:
+                                            df_distorted[col] = np.minimum(
+                                                X_clean[col] / mult, X_clean[col].mean())
+
+                                    X_distorted = df_distorted[model_data['features']]
+                                    pred_distorted = model_data['model'].predict(X_distorted)
+                                    f1_distorted = f1_score(y_true, pred_distorted, zero_division=0) \
+                                        if y_true is not None else 0.0
+
+                                normalized_f1 = f1_distorted / f1_clean_val if f1_clean_val > 0 else 0.0
+
+                                fragility_results.append({
+                                    "Model": model_label,
+                                    "Family": family,
+                                    "Multiplier": mult,
+                                    "F1_clean": f1_clean_val,
+                                    "F1_distorted": f1_distorted,
+                                    "Normalized_F1": normalized_f1,
+                                    "Delta_F1": f1_clean_val - f1_distorted
+                                })
+                        except:
+                            pass
+
+                    df_frag = pd.DataFrame(fragility_results)
+
+                    if not df_frag.empty:
+                        st.subheader("3A. Кривые хрупкости (Fragility Curves)")
+                        st.caption("Каждая линия — модель. Цвет — семейство. "
+                                   "Y = normalized F1 = F1_distorted / F1_clean. "
+                                   "Пунктир — медиана семейства.")
+
+                        fig_frag_curves = go.Figure()
+
+                        for family_name in df_frag['Family'].unique():
+                            fam_data = df_frag[df_frag['Family'] == family_name]
+                            fam_median = fam_data.groupby('Multiplier')['Normalized_F1'] \
+                                .median().reset_index()
+                            color = family_colors.get(family_name, '#999999')
+
+                            fig_frag_curves.add_trace(go.Scatter(
+                                x=fam_median['Multiplier'],
+                                y=fam_median['Normalized_F1'],
+                                mode='lines+markers',
+                                line=dict(color=color, width=4, dash='dot'),
+                                marker=dict(size=8, color=color),
+                                name=f'{family_name} (median)'
+                            ))
+
+                        top_n = min(3, df_frag['Model'].nunique())
+                        top_models = df_frag[df_frag['Multiplier'] == 1.0] \
+                            .nlargest(top_n, 'F1_clean')['Model'].tolist()
+
+                        for model_label in top_models:
+                            m_data = df_frag[df_frag['Model'] == model_label] \
+                                .sort_values('Multiplier')
+                            if len(m_data) < 2:
+                                continue
+                            family = m_data['Family'].iloc[0]
+                            color = family_colors.get(family, '#999999')
+
+                            fig_frag_curves.add_trace(go.Scatter(
+                                x=m_data['Multiplier'],
+                                y=m_data['Normalized_F1'],
+                                mode='lines+markers',
+                                line=dict(color=color, width=1.5),
+                                marker=dict(size=5, color=color),
+                                name=model_label,
+                                showlegend=False,
+                                hovertext=m_data.apply(
+                                    lambda x: f"{x['Model']}<br>"
+                                              f"x{x['Multiplier']:.0f}: "
+                                              f"{x['Normalized_F1']:.4f}", axis=1)
+                            ))
+
+                        fig_frag_curves.update_xaxes(
+                            title_text="Distortion Level (multiplier)",
+                            type='log',
+                            tickvals=[1, 2, 5, 10],
+                            ticktext=['x1 (clean)', 'x2', 'x5', 'x10']
                         )
-                        fig_stress.update_xaxes(side="top")
-                        render_tall_chart(fig_stress, height=600, width=800)
-    else:
-        st.info("Нет данных. Сначала обучите модели.")
+                        fig_frag_curves.update_yaxes(
+                            title_text="Normalized F1", range=[0, 1.05]
+                        )
+                        fig_frag_curves.add_hline(
+                            y=1.0, line_dash="dash", line_color="gray",
+                            line_width=1,
+                            annotation_text="Baseline",
+                            annotation_position="top left"
+                        )
+                        render_tall_chart(fig_frag_curves, height=600, width=800)
+                        st.divider()
+
+                        st.subheader("3B. Оценка хрупкости (Fragility Score vs Quality)")
+                        st.caption("Левый верхний угол = лучшие (высокое качество, низкая хрупкость). "
+                                   "⭐ = Pareto-optimal.")
+
+                        frag_scores = df_frag[df_frag['Multiplier'] > 1.0].groupby('Model').agg(
+                            fragility_score=('Delta_F1', 'sum'),
+                            F1_clean=('F1_clean', 'first'),
+                            Family=('Family', 'first')
+                        ).reset_index()
+
+                        fig_frag_scatter = go.Figure()
+
+                        for family_name, group_df in frag_scores.groupby('Family'):
+                            fig_frag_scatter.add_trace(go.Scatter(
+                                x=group_df['fragility_score'],
+                                y=group_df['F1_clean'],
+                                mode='markers',
+                                marker=dict(
+                                    size=12,
+                                    color=family_colors.get(family_name, '#999999'),
+                                    line=dict(width=1, color='black')
+                                ),
+                                name=family_name,
+                                hovertext=group_df.apply(
+                                    lambda x: f"{x['Model']}<br>"
+                                              f"F1: {x['F1_clean']:.4f}<br>"
+                                              f"Fragility: {x['fragility_score']:.4f}",
+                                    axis=1
+                                )
+                            ))
+
+                        if len(frag_scores) >= 2:
+                            pareto_mask = []
+                            sorted_by_f1 = frag_scores.sort_values(
+                                'F1_clean', ascending=False)
+                            min_frag = float('inf')
+                            for _, row in sorted_by_f1.iterrows():
+                                if row['fragility_score'] <= min_frag:
+                                    pareto_mask.append(row['Model'])
+                                    min_frag = row['fragility_score']
+
+                            pareto_df = frag_scores[
+                                frag_scores['Model'].isin(pareto_mask)]
+                            if not pareto_df.empty:
+                                fig_frag_scatter.add_trace(go.Scatter(
+                                    x=pareto_df['fragility_score'],
+                                    y=pareto_df['F1_clean'],
+                                    mode='markers+text',
+                                    marker=dict(
+                                        size=18, color='gold', symbol='star',
+                                        line=dict(width=2, color='black')
+                                    ),
+                                    text=pareto_df['Model'],
+                                    textposition='top center',
+                                    textfont=dict(size=9),
+                                    name='Pareto-optimal',
+                                    hovertext=pareto_df.apply(
+                                        lambda x: f"{x['Model']}<br>"
+                                                  f"F1: {x['F1_clean']:.4f}<br>"
+                                                  f"Fragility: {x['fragility_score']:.4f}",
+                                        axis=1
+                                    )
+                                ))
+
+                        fig_frag_scatter.update_xaxes(
+                            title_text="Fragility Score (Σ Δ F1, ← lower = better)")
+                        fig_frag_scatter.update_yaxes(
+                            title_text="F1 Clean (↑ higher = better)")
+                        render_tall_chart(fig_frag_scatter, height=600, width=800)
+                    else:
+                        st.warning("Не удалось вычислить метрики хрупкости.")
+
+        # ========================================== #
+        # ГРАФИК: Влияние PCA (ΔF1)
+        # ========================================== #
+        st.subheader("Влияние снижения размерности (PCA)")
+        st.caption(
+            "ΔF1 = F1(PCA) − F1(без PCA). "
+            "Каждая точка = одна и та же модель + один и тот же профиль."
+        )
+
+        # --- только нужные запуски ---
+        df_pca_all = df_hist_no_lr.copy()
+
+        # флаг PCA
+        df_pca_all['is_pca'] = df_pca_all['Run'].str.contains('_pca', case=False, na=False)
+
+        # нормализуем имя запуска: убираем _pca только с конца
+        df_pca_all['run_base'] = df_pca_all['Run'].str.replace(
+            r'_pca$', '', regex=True
+        )
+
+        # ключ = МОДЕЛЬ + ИМЯ ЗАПУСКА
+        # это гарантирует правильное спаривание
+        df_pca_all['pair_key'] = (
+            df_pca_all['Model'].astype(str) + '__' +
+            df_pca_all['run_base'].astype(str)
+        )
+
+        # лучшие результаты в каждой группе
+        best_pca = (
+            df_pca_all[df_pca_all['is_pca']]
+            .groupby('pair_key')
+            .agg(
+                f1_pca=('f1_score', 'max'),
+                Model_Family=('Model_Family', 'first')
+            )
+            .reset_index()
+        )
+
+        best_no_pca = (
+            df_pca_all[~df_pca_all['is_pca']]
+            .groupby('pair_key')
+            .agg(
+                f1_no_pca=('f1_score', 'max')
+            )
+            .reset_index()
+        )
+
+        # --- правильное спаривание ---
+        merged = pd.merge(
+            best_no_pca,
+            best_pca,
+            on='pair_key',
+            how='inner'
+        )
+
+        if merged.empty:
+            st.warning("Не найдено корректных PCA / non-PCA пар.")
+        else:
+            merged['delta_f1'] = merged['f1_pca'] - merged['f1_no_pca']
+
+            fig_pca = go.Figure()
+
+            # scatter
+            for family_name, group_df in merged.groupby('Model_Family'):
+                fig_pca.add_trace(go.Scatter(
+                    x=group_df['f1_no_pca'],
+                    y=group_df['delta_f1'],
+                    mode='markers',
+                    marker=dict(
+                        size=12,
+                        color=family_colors.get(family_name, '#999999'),
+                        line=dict(width=1, color='black')
+                    ),
+                    name=family_name,
+                    hovertext=group_df.apply(
+                        lambda x: (
+                            f"{x['pair_key']}<br>"
+                            f"F1 no PCA: {x['f1_no_pca']:.4f}<br>"
+                            f"F1 PCA: {x['f1_pca']:.4f}<br>"
+                            f"ΔF1: {x['delta_f1']:+.4f}"
+                        ),
+                        axis=1
+                    ),
+                    hoverinfo='text'
+                ))
+
+            # zero line
+            fig_pca.add_hline(
+                y=0,
+                line_dash="dash",
+                line_color="black",
+                annotation_text="ΔF1 = 0"
+            )
+
+            # global trend
+            if len(merged) >= 2:
+                x = merged['f1_no_pca'].values
+                y = merged['delta_f1'].values
+
+                if len(np.unique(x)) >= 2:
+                    A = np.vstack([x, np.ones(len(x))]).T
+                    slope, intercept = np.linalg.lstsq(A, y, rcond=None)[0]
+
+                    x_line = np.linspace(x.min(), x.max(), 100)
+                    y_line = slope * x_line + intercept
+
+                    fig_pca.add_trace(go.Scatter(
+                        x=x_line,
+                        y=y_line,
+                        mode='lines',
+                        line=dict(color='red', width=3),
+                        name='Trend'
+                    ))
+
+            fig_pca.update_xaxes(title_text="Baseline F1 (без PCA)")
+            fig_pca.update_yaxes(title_text="ΔF1 (PCA − no PCA)")
+
+            render_tall_chart(fig_pca, height=600, width=800)
+
+            # debug table
+            with st.expander("Проверка pairing"):
+                st.dataframe(merged)

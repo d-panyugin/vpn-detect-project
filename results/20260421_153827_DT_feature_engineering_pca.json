@@ -1,0 +1,13 @@
+{
+    "timestamp": "2026-04-21 15:38:27",
+    "model_name": "DT",
+    "run_name": "DT_feature_engineering_pca",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.8710920053595355,
+        "precision": 0.8610421836228288,
+        "recall": 0.8865807598311486,
+        "f1_score": 0.8736248700125883
+    },
+    "feature_importance_full": []
+}

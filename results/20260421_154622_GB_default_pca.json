@@ -1,0 +1,13 @@
+{
+    "timestamp": "2026-04-21 15:46:22",
+    "model_name": "GB",
+    "run_name": "GB_default_pca",
+    "train_dataset": "consolidated_traffic_data.csv",
+    "metrics": {
+        "accuracy": 0.6636333184457347,
+        "precision": 0.6551652246429688,
+        "recall": 0.6981781826260831,
+        "f1_score": 0.6759881688625975
+    },
+    "feature_importance_full": []
+}

@@ -113,11 +113,11 @@ def save_run_results(model_data, metrics, output_path):
     if len(importances) > 0 and len(importances) == len(processed_features):
         for f, imp in zip(processed_features, importances):
             fi_list.append({"feature": f, "importance": float(imp)})
-            
+    pca_tag = "_pca" if model_data.get("use_pca", False) else ""
     result_data = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "model_name": algo_name,
-        "run_name": f"{algo_name}_{profile_name}",
+        "run_name": f"{algo_name}_{profile_name}{pca_tag}",
         "train_dataset": Path(model_data.get('dataset_path', '')).name,
         "metrics": {
             "accuracy": float(metrics["accuracy"]),
@@ -129,7 +129,8 @@ def save_run_results(model_data, metrics, output_path):
     }
     
     timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-    filename = results_dir / f"{timestamp_str}_{algo_name}_{profile_name}.json"
+    use_pca = bool(model_data.get('use_pca', False))
+    filename = results_dir / f"{timestamp_str}_{algo_name}_{profile_name}_{'pca' if use_pca else ''}.json"
     
     with open(filename, "w", encoding='utf-8') as f:
         json.dump(result_data, f, ensure_ascii=False, indent=4)
@@ -201,9 +202,9 @@ def train_pipeline(algo_name, data_path, output_path, profile_name="default", us
         "features": X.columns.tolist(),
         "processed_features": processed_feature_names,
         "importances": importances,
-        "dataset_path": data_path
+        "dataset_path": data_path,
     }
-    
+    model_data["use_pca"] = use_pca
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model_data, output_path)
     save_run_results(model_data, metrics, output_path)
